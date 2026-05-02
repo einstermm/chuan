@@ -116,13 +116,15 @@
         {name:"执行计划", taskIds:["H-A-07"]},
         {name:"Hummingbot 适配器", taskIds:["H-B-01"]}
       ]},
-      {id:"hummingbot_execution_layer", index:"08", name:"Hummingbot 执行层", layer:"执行和交易所连接层", chain:"Hummingbot 执行任务 -> 交易所订单", input:"Hummingbot 请求 / 连接器 / 交易规则", output:"交易所订单 / 执行器状态", objects:"执行任务 -> 交易所订单", action:"执行普通订单、时间加权分批、持仓执行器、网格、定投", boundary:"执行和交易所连接层", nodes:[
+      {id:"hummingbot_execution_layer", index:"08", name:"Hummingbot 执行层", layer:"执行和交易所连接层", chain:"Hummingbot 执行任务 -> 执行中风控监控 -> 交易所订单", input:"Hummingbot 请求 / 连接器 / 交易规则", output:"交易所订单 / 执行器状态", objects:"执行任务 -> 执行中风控 -> 交易所订单", action:"执行普通订单、时间加权分批、持仓执行器、网格、定投，并监控执行中风险", boundary:"执行和交易所连接层", nodes:[
         {name:"Hummingbot 执行任务", taskIds:["H-B-02","H-B-03","H-B-04","H-B-05","H-B-06","H-B-07"]},
+        {name:"执行中风控监控", taskIds:[]},
         {name:"交易所订单", taskIds:[]}
       ]},
-      {id:"trading_event_layer", index:"09", name:"交易事件层", layer:"执行和交易所连接层 -> 系统大脑", chain:"订单事件流 -> 成交事件流", input:"交易所订单 / Hummingbot 事件", output:"订单事件 / 成交事件 / 回传消息", objects:"订单事件 -> 成交事件 -> 状态回传", action:"跟踪订单生命周期，把成交和状态回传系统", boundary:"执行和交易所连接层 + 系统大脑", nodes:[
+      {id:"trading_event_layer", index:"09", name:"交易事件层", layer:"执行和交易所连接层 -> 系统大脑", chain:"订单事件流 -> 成交事件流 -> 成交幂等处理", input:"交易所订单 / Hummingbot 事件", output:"订单事件 / 成交事件 / 幂等成交记录 / 回传消息", objects:"订单事件 -> 成交事件 -> 成交幂等 -> 状态回传", action:"跟踪订单生命周期，把成交做幂等处理后回传系统", boundary:"执行和交易所连接层 + 系统大脑", nodes:[
         {name:"订单事件流", taskIds:["H-C-01","H-C-03","H-C-04","H-C-05","H-C-06","H-C-07"]},
-        {name:"成交事件流", taskIds:["H-C-02","H-C-08","S-E-01","S-E-02"]}
+        {name:"成交事件流", taskIds:["H-C-02","H-C-08","S-E-01","S-E-02"]},
+        {name:"成交幂等处理", taskIds:[]}
       ]},
       {id:"ledger_risk_layer", index:"10", name:"账本风控层", layer:"系统大脑 + 执行连接层", chain:"持仓账本 -> 现金账本 -> 费用账本 -> 盈亏计算 -> 风险计算 -> 交易所对账", input:"余额 / 持仓 / 订单成交 / 系统健康状态", output:"账本状态 / 实时盈亏 / 风险状态 / 对账结果", objects:"持仓 -> 现金 -> 费用 -> 盈亏 -> 风险 -> 对账", action:"维护交易账本、计算盈亏、监控风险并与交易所对账", boundary:"系统大脑 + 执行和交易所连接层", nodes:[
         {name:"持仓账本", taskIds:["H-A-04"]},
@@ -275,6 +277,7 @@
         boundary:"Hummingbot 是执行引擎，不是完整投资系统。它负责接收任务、创建订单、撤单、追踪订单并回传状态和成交事件。",
         rows:[
           ["Hummingbot 执行任务","启动 Bot，连接交易所，创建订单，撤单，追踪订单","Hummingbot 执行状态"],
+          ["执行中风控监控","在订单执行过程中监控撤单、超时、滑点、异常和退出条件","执行中风险状态"],
           ["交易所订单","交易所真实接收的订单","交易所订单"]
         ]
       },
@@ -283,7 +286,8 @@
         boundary:"交易事件层只记录事实，不直接修改策略参数。它需要维护订单意图编号、执行计划编号、Hummingbot 订单编号、交易所订单编号和成交编号之间的映射。",
         rows:[
           ["订单事件流","记录订单创建、提交、部分成交、完全成交、撤单、拒单、失败","订单事件"],
-          ["成交事件流","记录真实成交价格、数量、手续费、成交时间","成交事件"]
+          ["成交事件流","记录真实成交价格、数量、手续费、成交时间","成交事件"],
+          ["成交幂等处理","根据成交编号、订单编号和交易所成交记录去重，避免重复入账","幂等成交记录"]
         ]
       },
       ledger_risk_layer: {
