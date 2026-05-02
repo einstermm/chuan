@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>S-E-05 监控 Hummingbot 是否正常运行</title>
+  <style>
+    :root{--bg:#f6f7f8;--panel:#fff;--line:#d9dde3;--text:#1f2933;--muted:#697386;--primary:#1f6feb;--ok:#137333}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,"Microsoft YaHei",sans-serif;font-size:14px;line-height:1.5}header{padding:18px 24px;border-bottom:1px solid var(--line);background:#fff}h1,h2{margin:0;font-weight:600}h1{font-size:22px}h2{font-size:17px;margin-bottom:12px}main{max-width:980px;margin:0 auto;padding:18px}.panel{background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px;margin-bottom:14px}.form{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.field.wide{grid-column:1/-1}label{display:block;margin-bottom:5px;color:#344054;font-size:13px}input,select,textarea{width:100%;min-height:34px;padding:7px 9px;border:1px solid #c9d1dc;border-radius:4px;background:#fff;color:var(--text);font:inherit}textarea{min-height:86px;resize:vertical}.actions{display:flex;gap:8px;margin-top:12px}button{min-height:34px;padding:7px 12px;border:1px solid var(--primary);border-radius:4px;background:var(--primary);color:#fff;cursor:pointer;font:inherit}button.secondary{border-color:#b6c2d1;background:#fff;color:var(--text)}pre{padding:10px;border:1px solid var(--line);border-radius:6px;background:#fbfcfd;overflow:auto;min-height:160px}.message{min-height:24px;margin-top:10px;color:var(--muted)}.ok{color:var(--ok)}@media(max-width:900px){.form{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header><h1>S-E-05 监控 Hummingbot 是否正常运行</h1></header>
+  <main>
+    <section class="panel">
+      <h2>监控 Hummingbot 是否正常运行</h2>
+      <div class="form">
+        <div class="field"><label for="instance">实例</label><input id="instance" value="master_account"></div>
+        <div class="field"><label for="api_url">API URL</label><input id="api_url" value="http://127.0.0.1:8000"></div>
+        <div class="field"><label for="heartbeat_seconds">心跳秒数</label><input id="heartbeat_seconds" value="30"></div>
+        <div class="field"><label for="max_silence_seconds">最大静默秒数</label><input id="max_silence_seconds" value="120"></div>
+        <div class="field"><label for="status">状态</label><select id="status"><option>UNKNOWN</option><option>OK</option><option>DOWN</option></select></div>
+      </div>
+      <div class="actions"><button id="generateBtn">生成</button><button class="secondary" id="saveBtn">保存</button></div>
+      <div id="message" class="message"></div>
+    </section>
+    <section class="panel"><h2>结果</h2><pre id="result">-</pre></section>
+  </main>
+  <script>
+    const ids=["instance","api_url","heartbeat_seconds","max_silence_seconds","status"];
+    const code="S-E-05";
+    const title="监控 Hummingbot 是否正常运行";
+    const storageKey="chuan_S_E_05";
+    const result=document.getElementById("result");
+    const message=document.getElementById("message");
+    const els=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));
+    function valueOf(el){return el.tagName==="SELECT"?el.value:el.value.trim();}
+    function build(){
+      const data={task_id:code,task_name:title,updated_at:new Date().toISOString()};
+      ids.forEach(id=>data[id]=valueOf(els[id]));
+      result.textContent=JSON.stringify(data,null,2);
+      return data;
+    }
+    function save(){const data=build();localStorage.setItem(storageKey,JSON.stringify(data));message.textContent="已保存。";message.className="message ok";}
+    function restore(){try{const data=JSON.parse(localStorage.getItem(storageKey)||"{}");ids.forEach(id=>{if(data[id]!==undefined)els[id].value=data[id];});}catch(_){}build();}
+    ids.forEach(id=>els[id].addEventListener("input",build));
+    document.getElementById("generateBtn").addEventListener("click",build);
+    document.getElementById("saveBtn").addEventListener("click",save);
+    restore();
+  </script>
+</body>
+</html>

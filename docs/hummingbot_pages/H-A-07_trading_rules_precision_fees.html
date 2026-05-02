@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>H-A-07 交易规则</title>
+  <style>
+    :root { --bg:#f6f7f8; --panel:#fff; --line:#d9dde3; --text:#1f2933; --muted:#697386; --primary:#1f6feb; --danger:#c53030; --ok:#137333; --warn:#8a5a00; }
+    *{box-sizing:border-box;} body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,"Microsoft YaHei",sans-serif;font-size:14px;line-height:1.5;} header{padding:18px 24px;border-bottom:1px solid var(--line);background:var(--panel);} h1,h2{margin:0;font-weight:600;} h1{font-size:22px;} h2{margin-bottom:12px;font-size:17px;} main{max-width:1180px;margin:0 auto;padding:18px 18px 40px;}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-bottom:14px;} .panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;} .span-12{grid-column:span 12;}
+    .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;} .metric{border:1px solid var(--line);border-radius:6px;padding:10px;background:#fbfcfd;} .metric-label{color:var(--muted);font-size:12px;} .metric-value{margin-top:4px;font-size:18px;font-weight:600;}
+    .toolbar{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:12px;} label{display:block;margin-bottom:5px;color:#344054;font-size:13px;} input,select{width:100%;min-height:34px;padding:7px 9px;border:1px solid #c9d1dc;border-radius:4px;background:#fff;color:var(--text);font:inherit;}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;} button{min-height:34px;padding:7px 12px;border:1px solid #b6c2d1;border-radius:4px;background:#fff;color:var(--text);cursor:pointer;font:inherit;} button.primary{border-color:var(--primary);background:var(--primary);color:#fff;}
+    table{width:100%;border-collapse:collapse;background:#fff;} th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;} th{background:#f8fafc;color:#344054;font-weight:600;font-size:13px;}
+    .muted{color:var(--muted);} .message{min-height:24px;margin-top:10px;color:var(--muted);} .message.ok{color:var(--ok);} .message.fail{color:var(--danger);} .chip{display:inline-block;padding:2px 7px;border:1px solid var(--line);border-radius:999px;background:#fbfcfd;font-size:12px;margin:0 4px 4px 0;}
+    @media(max-width:900px){.summary,.toolbar{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+  <header><h1>H-A-07 交易规则</h1></header>
+  <main>
+    <section class="grid">
+      <div class="panel span-12">
+        <h2>规则概览</h2>
+        <div class="summary">
+          <div class="metric"><div class="metric-label">交易对数</div><div class="metric-value" id="rulesCount">0</div></div>
+          <div class="metric"><div class="metric-label">订单类型</div><div class="metric-value" id="orderTypeCount">0</div></div>
+          <div class="metric"><div class="metric-label">最小下单量字段</div><div class="metric-value" id="minOrderCount">0</div></div>
+          <div class="metric"><div class="metric-label">手续费规则</div><div class="metric-value" id="feeStatus">本地</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel span-12">
+        <h2>规则查询</h2>
+        <div class="toolbar">
+          <div><label for="connectorSelect">Connector</label><select id="connectorSelect"></select></div>
+          <div><label for="pairsInput">交易对</label><input id="pairsInput" value="BTC-USDT,ETH-USDT"></div>
+          <div><label for="pairFilter">过滤</label><input id="pairFilter" placeholder="BTC"></div>
+          <div><button class="primary" id="loadRulesBtn">读取规则</button></div>
+        </div>
+        <div id="orderTypes" class="message"></div>
+        <table>
+          <thead>
+            <tr>
+              <th>交易对</th>
+              <th>最小下单量</th>
+              <th>最大下单量</th>
+              <th>价格精度</th>
+              <th>数量精度</th>
+              <th>Quote 精度</th>
+            </tr>
+          </thead>
+          <tbody id="rulesTable"><tr><td colspan="6" class="muted">等待加载。</td></tr></tbody>
+        </table>
+        <div id="message" class="message"></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel span-12">
+        <h2>手续费规则</h2>
+        <table>
+          <thead><tr><th>Connector</th><th>Maker</th><th>Taker</th><th>来源</th></tr></thead>
+          <tbody id="feesTable"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const demoRules = {
+      "BTC-USDT": { min_order_size: "0.00001", max_order_size: null, min_price_increment: "0.01", min_base_amount_increment: "0.00001", min_quote_amount_increment: "0.01" },
+      "ETH-USDT": { min_order_size: "0.0001", max_order_size: null, min_price_increment: "0.01", min_base_amount_increment: "0.0001", min_quote_amount_increment: "0.01" }
+    };
+    const localFees = JSON.parse(localStorage.getItem("chuanLocalFeeRules") || "{}");
+    const state = { connectors:[], rules:{}, orderTypes:[], apiAvailable:false, apiConfig:loadApiConfig() };
+    const els = { connectorSelect:document.getElementById("connectorSelect"), pairsInput:document.getElementById("pairsInput"), pairFilter:document.getElementById("pairFilter"), rulesTable:document.getElementById("rulesTable"), orderTypes:document.getElementById("orderTypes"), message:document.getElementById("message"), rulesCount:document.getElementById("rulesCount"), orderTypeCount:document.getElementById("orderTypeCount"), minOrderCount:document.getElementById("minOrderCount"), feeStatus:document.getElementById("feeStatus"), feesTable:document.getElementById("feesTable") };
+    function loadApiConfig(){const d={baseUrl:"http://127.0.0.1:8000",username:"admin",password:"admin",mode:"auto"};try{return{...d,...JSON.parse(localStorage.getItem("chuanBackendConfig")||"{}")};}catch(_){return d;}}
+    function authHeaders(){return{"Authorization":`Basic ${btoa(`${state.apiConfig.username}:${state.apiConfig.password}`)}`,"Content-Type":"application/json"};}
+    async function apiFetch(path){const base=state.apiConfig.baseUrl.replace(/\/$/,"");const r=await fetch(`${base}${path}`,{headers:authHeaders()});if(!r.ok){let d=r.statusText;try{const b=await r.json();d=b.detail||b.message||JSON.stringify(b);}catch(_){}throw new Error(d);}return r.json();}
+    function setMessage(text,type=""){els.message.className=`message ${type}`;els.message.textContent=text;}
+    async function loadInitial(){state.apiConfig=loadApiConfig();if(state.apiConfig.mode==="demo"){useDemo();return;}try{state.connectors=await apiFetch("/connectors/");state.apiAvailable=true;fillConnectors();await loadRules();}catch(e){if(state.apiConfig.mode==="api"){setMessage(`读取失败：${e.message}`,"fail");}else useDemo();}}
+    function useDemo(){state.connectors=["binance","binance_perpetual","okx"];state.rules=demoRules;state.orderTypes=["LIMIT","MARKET","LIMIT_MAKER"];state.apiAvailable=false;fillConnectors();render();}
+    function fillConnectors(){els.connectorSelect.innerHTML=state.connectors.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");}
+    function pairs(){return els.pairsInput.value.split(",").map(x=>x.trim().toUpperCase()).filter(Boolean);}
+    async function loadRules(){const connector=els.connectorSelect.value;if(!connector){useDemo();return;}if(!state.apiAvailable){useDemo();return;}try{setMessage("读取中...");const qs=pairs().map(p=>`trading_pairs=${encodeURIComponent(p)}`).join("&");const [rules,types]=await Promise.all([apiFetch(`/connectors/${encodeURIComponent(connector)}/trading-rules${qs?"?"+qs:""}`),apiFetch(`/connectors/${encodeURIComponent(connector)}/order-types`)]);state.rules=rules;state.orderTypes=types.supported_order_types||[];render();setMessage("已读取。","ok");}catch(e){setMessage(`读取失败：${e.message}`,"fail");}}
+    function render(){renderSummary();renderOrderTypes();renderRules();renderFees();}
+    function visibleRules(){const f=els.pairFilter.value.trim().toLowerCase();return Object.entries(state.rules||{}).filter(([pair])=>!f||pair.toLowerCase().includes(f));}
+    function renderSummary(){const rows=visibleRules();els.rulesCount.textContent=rows.length;els.orderTypeCount.textContent=state.orderTypes.length;els.minOrderCount.textContent=rows.filter(([,r])=>r.min_order_size!==undefined).length;els.feeStatus.textContent="本地";}
+    function renderOrderTypes(){els.orderTypes.innerHTML=state.orderTypes.length?state.orderTypes.map(x=>`<span class="chip">${escapeHtml(x)}</span>`).join(""):"";}
+    function renderRules(){const rows=visibleRules();els.rulesTable.innerHTML=rows.length?rows.map(([pair,r])=>`<tr><td><strong>${escapeHtml(pair)}</strong></td><td>${value(r.min_order_size)}</td><td>${value(r.max_order_size)}</td><td>${value(r.min_price_increment)}</td><td>${value(r.min_base_amount_increment)}</td><td>${value(r.min_quote_amount_increment)}</td></tr>`).join(""):`<tr><td colspan="6" class="muted">暂无规则。</td></tr>`;}
+    function renderFees(){const connector=els.connectorSelect.value||"-";const fee=localFees[connector]||{maker:"待配置",taker:"待配置"};els.feesTable.innerHTML=`<tr><td>${escapeHtml(connector)}</td><td>${escapeHtml(fee.maker)}</td><td>${escapeHtml(fee.taker)}</td><td>localStorage</td></tr>`;}
+    function value(v){return v===null||v===undefined?"-":escapeHtml(v);}
+    function escapeHtml(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
+    document.getElementById("loadRulesBtn").addEventListener("click",loadRules);els.connectorSelect.addEventListener("change",loadRules);els.pairFilter.addEventListener("input",render);loadInitial();
+  </script>
+</body>
+</html>

@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>H-A-04 读取持仓信息</title>
+  <style>
+    :root {
+      --bg: #f6f7f8;
+      --panel: #ffffff;
+      --line: #d9dde3;
+      --text: #1f2933;
+      --muted: #697386;
+      --primary: #1f6feb;
+      --danger: #c53030;
+      --ok: #137333;
+      --warn: #8a5a00;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    h1, h2 {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    h1 { font-size: 22px; }
+
+    h2 {
+      margin-bottom: 12px;
+      font-size: 17px;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 18px 18px 40px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 14px;
+    }
+
+    .span-12 { grid-column: span 12; }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      background: #fbfcfd;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric-value {
+      margin-top: 4px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-header h2 { margin-bottom: 0; }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #344054;
+      font-size: 13px;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 34px;
+      padding: 7px 9px;
+      border: 1px solid #c9d1dc;
+      border-radius: 4px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button {
+      min-height: 34px;
+      padding: 7px 12px;
+      border: 1px solid #b6c2d1;
+      border-radius: 4px;
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    button.primary {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th, td {
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #344054;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .status.long {
+      background: #e7f3eb;
+      color: var(--ok);
+    }
+
+    .status.short {
+      background: #fde8e8;
+      color: var(--danger);
+    }
+
+    .muted { color: var(--muted); }
+    .positive { color: var(--ok); }
+    .negative { color: var(--danger); }
+
+    .message {
+      min-height: 24px;
+      margin-top: 10px;
+      color: var(--muted);
+    }
+
+    .message.ok { color: var(--ok); }
+    .message.fail { color: var(--danger); }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(17, 24, 39, 0.42);
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      width: min(640px, 100%);
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 14px;
+      box-shadow: 0 18px 44px rgba(15, 23, 42, 0.22);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .modal-header h2 { margin-bottom: 0; }
+
+    .modal-close {
+      min-width: 34px;
+      padding: 4px 9px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfd;
+      overflow: auto;
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .summary, .toolbar {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>H-A-04 读取持仓信息</h1>
+  </header>
+
+  <main>
+    <section class="grid">
+      <div class="panel span-12">
+        <h2>持仓概览</h2>
+        <div class="summary">
+          <div class="metric">
+            <div class="metric-label">持仓数</div>
+            <div class="metric-value" id="positionCount">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Long 名义价值</div>
+            <div class="metric-value" id="longValue">0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Short 名义价值</div>
+            <div class="metric-value" id="shortValue">0.00</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">未实现 PnL</div>
+            <div class="metric-value" id="totalPnl">0.00</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel span-12">
+        <div class="section-header">
+          <h2>持仓明细</h2>
+          <button id="positionModeBtn">持仓模式</button>
+        </div>
+        <div class="toolbar">
+          <div>
+            <label for="accountFilter">账户</label>
+            <select id="accountFilter"></select>
+          </div>
+          <div>
+            <label for="connectorFilter">Connector</label>
+            <select id="connectorFilter"></select>
+          </div>
+          <div>
+            <label for="pairSearch">交易对</label>
+            <input id="pairSearch" placeholder="BTC-USDT">
+          </div>
+          <div>
+            <label for="sideFilter">方向</label>
+            <select id="sideFilter">
+              <option value="">全部</option>
+              <option value="LONG">LONG</option>
+              <option value="SHORT">SHORT</option>
+            </select>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>账户</th>
+              <th>Connector</th>
+              <th>交易对</th>
+              <th>方向</th>
+              <th>数量</th>
+              <th>入场价</th>
+              <th>杠杆</th>
+              <th>未实现 PnL</th>
+              <th>名义价值</th>
+            </tr>
+          </thead>
+          <tbody id="positionsTable">
+            <tr><td colspan="9" class="muted">等待加载。</td></tr>
+          </tbody>
+        </table>
+        <div id="message" class="message"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="positionModeModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>持仓模式</h2>
+        <button class="modal-close" data-close-modal="positionModeModal">×</button>
+      </div>
+      <div class="toolbar" style="grid-template-columns:1fr 1fr;">
+        <div>
+          <label for="modeAccount">账户</label>
+          <select id="modeAccount"></select>
+        </div>
+        <div>
+          <label for="modeConnector">Connector</label>
+          <select id="modeConnector"></select>
+        </div>
+      </div>
+      <div class="actions" style="margin-bottom:12px;">
+        <button class="primary" id="loadPositionModeBtn">读取持仓模式</button>
+      </div>
+      <pre id="positionModeView">-</pre>
+      <div id="positionModeMessage" class="message"></div>
+    </div>
+  </div>
+
+  <script>
+    const demoCredentials = {
+      master_account: ["binance_perpetual"],
+      paper_account: ["okx_perpetual"]
+    };
+
+    const demoPositions = [
+      { account_name: "master_account", connector_name: "binance_perpetual", trading_pair: "BTC-USDT", side: "LONG", amount: 0.025, entry_price: 65000, unrealized_pnl: 125.35, leverage: 3 },
+      { account_name: "master_account", connector_name: "binance_perpetual", trading_pair: "ETH-USDT", side: "SHORT", amount: -1.2, entry_price: 3200, unrealized_pnl: -48.2, leverage: 5 },
+      { account_name: "paper_account", connector_name: "okx_perpetual", trading_pair: "SOL-USDT", side: "LONG", amount: 30, entry_price: 145, unrealized_pnl: 62.8, leverage: 2 }
+    ];
+
+    const state = {
+      positions: [],
+      accounts: [],
+      perpetualConnectorsByAccount: {},
+      apiAvailable: false,
+      apiConfig: loadApiConfig()
+    };
+
+    const els = {
+      positionCount: document.getElementById("positionCount"),
+      longValue: document.getElementById("longValue"),
+      shortValue: document.getElementById("shortValue"),
+      totalPnl: document.getElementById("totalPnl"),
+      accountFilter: document.getElementById("accountFilter"),
+      connectorFilter: document.getElementById("connectorFilter"),
+      pairSearch: document.getElementById("pairSearch"),
+      sideFilter: document.getElementById("sideFilter"),
+      positionsTable: document.getElementById("positionsTable"),
+      message: document.getElementById("message"),
+      modeAccount: document.getElementById("modeAccount"),
+      modeConnector: document.getElementById("modeConnector"),
+      positionModeView: document.getElementById("positionModeView"),
+      positionModeMessage: document.getElementById("positionModeMessage")
+    };
+
+    function loadApiConfig() {
+      const defaults = {
+        baseUrl: "http://127.0.0.1:8000",
+        username: "admin",
+        password: "admin",
+        mode: "auto"
+      };
+      try {
+        return { ...defaults, ...JSON.parse(localStorage.getItem("chuanBackendConfig") || "{}") };
+      } catch (_) {
+        return defaults;
+      }
+    }
+
+    function authHeaders() {
+      return {
+        "Authorization": `Basic ${btoa(`${state.apiConfig.username}:${state.apiConfig.password}`)}`,
+        "Content-Type": "application/json"
+      };
+    }
+
+    async function apiFetch(path, options = {}) {
+      const base = state.apiConfig.baseUrl.replace(/\/$/, "");
+      const response = await fetch(`${base}${path}`, {
+        ...options,
+        headers: { ...authHeaders(), ...(options.headers || {}) }
+      });
+      if (!response.ok) {
+        let detail = response.statusText;
+        try {
+          const body = await response.json();
+          detail = body.detail || body.message || JSON.stringify(body);
+        } catch (_) {}
+        throw new Error(detail);
+      }
+      return response.json();
+    }
+
+    function setMessage(element, text, type = "") {
+      element.className = `message ${type}`;
+      element.textContent = text;
+    }
+
+    async function loadInitialData() {
+      state.apiConfig = loadApiConfig();
+      if (state.apiConfig.mode === "demo") {
+        useDemoData();
+        return;
+      }
+
+      try {
+        const accounts = await apiFetch("/accounts/");
+        const credentialEntries = await Promise.all(
+          accounts.map(async account => {
+            const credentials = await apiFetch(`/accounts/${encodeURIComponent(account)}/credentials`);
+            return [account, credentials.filter(connector => connector.includes("perpetual"))];
+          })
+        );
+        state.accounts = sortAccounts(accounts);
+        state.perpetualConnectorsByAccount = Object.fromEntries(credentialEntries);
+        state.apiAvailable = true;
+        fillSelects();
+        await loadPositions();
+      } catch (error) {
+        if (state.apiConfig.mode === "api") {
+          state.positions = [];
+          state.accounts = [];
+          state.perpetualConnectorsByAccount = {};
+          setMessage(els.message, `读取失败：${error.message}`, "fail");
+          fillSelects();
+          render();
+        } else {
+          useDemoData();
+        }
+      }
+    }
+
+    function useDemoData() {
+      state.positions = demoPositions;
+      state.accounts = sortAccounts(Object.keys(demoCredentials));
+      state.perpetualConnectorsByAccount = demoCredentials;
+      state.apiAvailable = false;
+      fillSelects();
+      render();
+    }
+
+    async function loadPositions() {
+      if (!state.apiAvailable) {
+        useDemoData();
+        return;
+      }
+
+      const account = els.accountFilter.value;
+      const connector = els.connectorFilter.value;
+      const payload = {
+        account_names: account ? [account] : null,
+        connector_names: connector ? [connector] : null,
+        limit: 100
+      };
+
+      try {
+        setMessage(els.message, "读取中...");
+        const response = await apiFetch("/trading/positions", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        state.positions = response.data || [];
+        render();
+        setMessage(els.message, "已读取。", "ok");
+      } catch (error) {
+        setMessage(els.message, `读取失败：${error.message}`, "fail");
+      }
+    }
+
+    function sortAccounts(accounts) {
+      const copy = [...accounts];
+      copy.sort((a, b) => {
+        if (a === "master_account") return -1;
+        if (b === "master_account") return 1;
+        return a.localeCompare(b);
+      });
+      return copy;
+    }
+
+    function fillSelects() {
+      fillSelect(els.accountFilter, state.accounts);
+      fillSelect(els.modeAccount, state.accounts);
+      fillConnectorSelect(els.connectorFilter);
+      fillConnectorSelect(els.modeConnector);
+    }
+
+    function fillSelect(select, values) {
+      const current = select.value;
+      select.innerHTML = `<option value="">全部</option>` + values.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+      if (values.includes(current)) select.value = current;
+    }
+
+    function fillConnectorSelect(select) {
+      const account = select === els.modeConnector ? els.modeAccount.value : els.accountFilter.value;
+      const connectors = account
+        ? (state.perpetualConnectorsByAccount[account] || [])
+        : [...new Set(Object.values(state.perpetualConnectorsByAccount).flat())].sort();
+      fillSelect(select, connectors);
+    }
+
+    function filteredPositions() {
+      const account = els.accountFilter.value;
+      const connector = els.connectorFilter.value;
+      const pair = els.pairSearch.value.trim().toLowerCase();
+      const side = els.sideFilter.value;
+      return state.positions.filter(position => {
+        const normalizedSide = getSide(position);
+        if (account && position.account_name !== account) return false;
+        if (connector && position.connector_name !== connector) return false;
+        if (pair && !String(position.trading_pair || "").toLowerCase().includes(pair)) return false;
+        if (side && normalizedSide !== side) return false;
+        return true;
+      });
+    }
+
+    function render() {
+      renderSummary();
+      renderTable();
+    }
+
+    function renderSummary() {
+      const rows = filteredPositions();
+      const longValue = rows.filter(row => getSide(row) === "LONG").reduce((sum, row) => sum + notionalValue(row), 0);
+      const shortValue = rows.filter(row => getSide(row) === "SHORT").reduce((sum, row) => sum + notionalValue(row), 0);
+      const pnl = rows.reduce((sum, row) => sum + Number(row.unrealized_pnl || 0), 0);
+      els.positionCount.textContent = rows.length;
+      els.longValue.textContent = formatNumber(longValue);
+      els.shortValue.textContent = formatNumber(shortValue);
+      els.totalPnl.textContent = formatNumber(pnl);
+      els.totalPnl.className = `metric-value ${pnl >= 0 ? "positive" : "negative"}`;
+    }
+
+    function renderTable() {
+      const rows = filteredPositions();
+      if (!rows.length) {
+        els.positionsTable.innerHTML = `<tr><td colspan="9" class="muted">暂无持仓。</td></tr>`;
+        return;
+      }
+
+      els.positionsTable.innerHTML = rows.map(position => {
+        const side = getSide(position);
+        const pnl = Number(position.unrealized_pnl || 0);
+        return `
+          <tr>
+            <td>${escapeHtml(position.account_name || "")}</td>
+            <td>${escapeHtml(position.connector_name || "")}</td>
+            <td><strong>${escapeHtml(position.trading_pair || "")}</strong></td>
+            <td><span class="status ${side === "SHORT" ? "short" : "long"}">${side}</span></td>
+            <td>${formatNumber(position.amount)}</td>
+            <td>${formatNumber(position.entry_price)}</td>
+            <td>${formatNumber(position.leverage)}</td>
+            <td class="${pnl >= 0 ? "positive" : "negative"}">${formatNumber(pnl)}</td>
+            <td>${formatNumber(notionalValue(position))}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function getSide(position) {
+      const side = String(position.side || "").toUpperCase();
+      if (side.includes("SHORT")) return "SHORT";
+      if (side.includes("LONG")) return "LONG";
+      return Number(position.amount || 0) < 0 ? "SHORT" : "LONG";
+    }
+
+    function notionalValue(position) {
+      return Math.abs(Number(position.amount || 0) * Number(position.entry_price || 0));
+    }
+
+    async function loadPositionMode() {
+      const account = els.modeAccount.value;
+      const connector = els.modeConnector.value;
+      if (!account || !connector) {
+        setMessage(els.positionModeMessage, "请选择账户和 connector。", "fail");
+        return;
+      }
+
+      if (!state.apiAvailable) {
+        els.positionModeView.textContent = JSON.stringify({ account_name: account, connector_name: connector, position_mode: "HEDGE" }, null, 2);
+        setMessage(els.positionModeMessage, "已读取。", "ok");
+        return;
+      }
+
+      try {
+        setMessage(els.positionModeMessage, "读取中...");
+        const result = await apiFetch(`/trading/${encodeURIComponent(account)}/${encodeURIComponent(connector)}/position-mode`);
+        els.positionModeView.textContent = JSON.stringify(result, null, 2);
+        setMessage(els.positionModeMessage, "已读取。", "ok");
+      } catch (error) {
+        setMessage(els.positionModeMessage, `读取失败：${error.message}`, "fail");
+      }
+    }
+
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add("open");
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.remove("open");
+    }
+
+    function formatNumber(value) {
+      if (value === null || value === undefined || Number.isNaN(Number(value))) return "-";
+      return Number(value).toLocaleString("en-US", { maximumFractionDigits: 8 });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    document.getElementById("positionModeBtn").addEventListener("click", () => {
+      fillSelects();
+      els.positionModeView.textContent = "-";
+      setMessage(els.positionModeMessage, "");
+      openModal("positionModeModal");
+    });
+    document.getElementById("loadPositionModeBtn").addEventListener("click", loadPositionMode);
+
+    els.accountFilter.addEventListener("change", () => {
+      fillConnectorSelect(els.connectorFilter);
+      loadPositions();
+    });
+    els.connectorFilter.addEventListener("change", loadPositions);
+    els.pairSearch.addEventListener("input", render);
+    els.sideFilter.addEventListener("change", render);
+    els.modeAccount.addEventListener("change", () => fillConnectorSelect(els.modeConnector));
+
+    document.querySelectorAll("[data-close-modal]").forEach(button => {
+      button.addEventListener("click", () => closeModal(button.dataset.closeModal));
+    });
+
+    document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
+      backdrop.addEventListener("click", event => {
+        if (event.target === backdrop) closeModal(backdrop.id);
+      });
+    });
+
+    loadInitialData();
+  </script>
+</body>
+</html>

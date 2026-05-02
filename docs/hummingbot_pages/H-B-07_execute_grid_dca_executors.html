@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>H-B-07 执行 Grid / DCA Executor</title>
+  <style>
+    :root{--bg:#f6f7f8;--panel:#fff;--line:#d9dde3;--text:#1f2933;--muted:#697386;--primary:#1f6feb;--danger:#c53030;--ok:#137333}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,"Microsoft YaHei",sans-serif;font-size:14px;line-height:1.5}header{padding:18px 24px;border-bottom:1px solid var(--line);background:#fff}h1,h2{margin:0;font-weight:600}h1{font-size:22px}h2{font-size:17px;margin-bottom:12px}main{max-width:1080px;margin:0 auto;padding:18px}.panel{background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px;margin-bottom:14px}.form{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.hidden{display:none}label{display:block;margin-bottom:5px;color:#344054;font-size:13px}input,select{width:100%;min-height:34px;padding:7px 9px;border:1px solid #c9d1dc;border-radius:4px;font:inherit}button{min-height:34px;padding:7px 12px;border:1px solid var(--primary);border-radius:4px;background:var(--primary);color:#fff;cursor:pointer;margin-top:12px}.message{min-height:24px;margin-top:10px;color:var(--muted)}.ok{color:var(--ok)}.fail{color:var(--danger)}pre{padding:10px;border:1px solid var(--line);border-radius:6px;background:#fbfcfd;overflow:auto;min-height:150px}@media(max-width:900px){.form{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header><h1>H-B-07 执行 Grid / DCA Executor</h1></header>
+  <main>
+    <section class="panel">
+      <h2>Executor</h2>
+      <div class="form">
+        <div><label>类型</label><select id="executorType"><option value="grid_executor">Grid</option><option value="dca_executor">DCA</option></select></div>
+        <div><label>账户</label><input id="account" value="master_account"></div>
+        <div><label>Controller ID</label><input id="controller" value="main"></div>
+        <div><label>Connector</label><input id="connector" value="binance_perpetual"></div>
+        <div><label>交易对</label><input id="pair" value="BTC-USDT"></div>
+        <div><label>方向</label><select id="side"><option>BUY</option><option>SELL</option></select></div>
+        <div><label>杠杆</label><input id="leverage" value="10"></div>
+        <div><label>Level ID</label><input id="levelId" value=""></div>
+      </div>
+    </section>
+
+    <section class="panel" id="gridPanel">
+      <h2>Grid</h2>
+      <div class="form">
+        <div><label>起始价</label><input id="startPrice" value="62000"></div>
+        <div><label>结束价</label><input id="endPrice" value="68000"></div>
+        <div><label>限价边界</label><input id="limitPrice" value="61000"></div>
+        <div><label>总金额 Quote</label><input id="gridAmountQuote" value="100"></div>
+        <div><label>最小网格价差</label><input id="minSpread" value="0.0005"></div>
+        <div><label>最小订单 Quote</label><input id="minOrderQuote" value="5"></div>
+        <div><label>最大挂单数</label><input id="maxOpenOrders" value="5"></div>
+        <div><label>批量下单数</label><input id="maxOrdersPerBatch" value=""></div>
+        <div><label>下单频率 秒</label><input id="orderFrequency" value="0"></div>
+        <div><label>安全价差</label><input id="safeExtraSpread" value="0.0001"></div>
+        <div><label>止盈</label><input id="gridTakeProfit" value="0.002"></div>
+        <div><label>保留仓位</label><select id="keepPosition"><option value="false">false</option><option value="true">true</option></select></div>
+      </div>
+    </section>
+
+    <section class="panel hidden" id="dcaPanel">
+      <h2>DCA</h2>
+      <div class="form">
+        <div><label>模式</label><select id="dcaMode"><option>MAKER</option><option>TAKER</option></select></div>
+        <div><label>价格列表</label><input id="dcaPrices" value="64000,63000,62000"></div>
+        <div><label>金额列表 Quote</label><input id="dcaAmounts" value="30,30,40"></div>
+        <div><label>止盈</label><input id="dcaTakeProfit" value="0.03"></div>
+        <div><label>止损</label><input id="dcaStopLoss" value="0.02"></div>
+        <div><label>时间退出 秒</label><input id="dcaTimeLimit" value="3600"></div>
+        <div><label>激活边界</label><input id="activationBounds" value=""></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <button id="submitBtn">创建 Executor</button>
+      <div id="message" class="message"></div>
+    </section>
+    <section class="panel"><h2>请求</h2><pre id="requestView">-</pre></section>
+    <section class="panel"><h2>结果</h2><pre id="resultView">-</pre></section>
+  </main>
+  <script>
+    const ids=["executorType","account","controller","connector","pair","side","leverage","levelId","startPrice","endPrice","limitPrice","gridAmountQuote","minSpread","minOrderQuote","maxOpenOrders","maxOrdersPerBatch","orderFrequency","safeExtraSpread","gridTakeProfit","keepPosition","dcaMode","dcaPrices","dcaAmounts","dcaTakeProfit","dcaStopLoss","dcaTimeLimit","activationBounds","message","requestView","resultView"];
+    const e=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));
+    const api=loadApiConfig();
+    function loadApiConfig(){const d={baseUrl:"http://127.0.0.1:8000",username:"admin",password:"admin",mode:"auto"};try{return{...d,...JSON.parse(localStorage.getItem("chuanBackendConfig")||"{}")};}catch(_){return d;}}
+    function headers(){return{"Authorization":`Basic ${btoa(`${api.username}:${api.password}`)}`,"Content-Type":"application/json"};}
+    async function apiFetch(path,opts={}){const r=await fetch(`${api.baseUrl.replace(/\/$/,"")}${path}`,{...opts,headers:{...headers(),...(opts.headers||{})}});if(!r.ok){let d=r.statusText;try{const b=await r.json();d=b.detail||b.message||JSON.stringify(b)}catch(_){}throw new Error(d)}return r.json();}
+    function list(v){return String(v||"").split(",").map(x=>x.trim()).filter(Boolean);}
+    function maybe(v){return String(v||"").trim()?String(v).trim():null;}
+    function baseConfig(){const cfg={type:e.executorType.value,connector_name:e.connector.value.trim(),trading_pair:e.pair.value.trim().toUpperCase(),side:e.side.value,leverage:Number(e.leverage.value)};if(maybe(e.levelId.value))cfg.level_id=e.levelId.value.trim();return cfg;}
+    function gridConfig(){const cfg={...baseConfig(),start_price:e.startPrice.value,end_price:e.endPrice.value,limit_price:e.limitPrice.value,total_amount_quote:e.gridAmountQuote.value,min_spread_between_orders:e.minSpread.value,min_order_amount_quote:e.minOrderQuote.value,max_open_orders:Number(e.maxOpenOrders.value),order_frequency:Number(e.orderFrequency.value),safe_extra_spread:e.safeExtraSpread.value,keep_position:e.keepPosition.value==="true",triple_barrier_config:{take_profit:e.gridTakeProfit.value,open_order_type:"LIMIT_MAKER",take_profit_order_type:"LIMIT_MAKER",stop_loss_order_type:"MARKET",time_limit_order_type:"MARKET"}};if(maybe(e.maxOrdersPerBatch.value))cfg.max_orders_per_batch=Number(e.maxOrdersPerBatch.value);return cfg;}
+    function dcaConfig(){const cfg={...baseConfig(),mode:e.dcaMode.value,prices:list(e.dcaPrices.value),amounts_quote:list(e.dcaAmounts.value)};if(maybe(e.dcaTakeProfit.value))cfg.take_profit=e.dcaTakeProfit.value;if(maybe(e.dcaStopLoss.value))cfg.stop_loss=e.dcaStopLoss.value;if(maybe(e.dcaTimeLimit.value))cfg.time_limit=Number(e.dcaTimeLimit.value);const bounds=list(e.activationBounds.value);if(bounds.length)cfg.activation_bounds=bounds;return cfg;}
+    function payload(){return{account_name:e.account.value.trim(),controller_id:e.controller.value.trim()||"main",executor_config:e.executorType.value==="grid_executor"?gridConfig():dcaConfig()};}
+    function switchType(){document.getElementById("gridPanel").classList.toggle("hidden",e.executorType.value!=="grid_executor");document.getElementById("dcaPanel").classList.toggle("hidden",e.executorType.value!=="dca_executor");refresh();}
+    function refresh(){e.requestView.textContent=JSON.stringify(payload(),null,2);}
+    async function submit(){const body=payload();e.requestView.textContent=JSON.stringify(body,null,2);if(api.mode==="demo"){e.resultView.textContent=JSON.stringify({dry_run:true,request:body},null,2);return;}try{e.resultView.textContent=JSON.stringify(await apiFetch("/executors/",{method:"POST",body:JSON.stringify(body)}),null,2);e.message.textContent="已创建。";e.message.className="message ok";}catch(err){e.message.textContent=`创建失败：${err.message}`;e.message.className="message fail";}}
+    ids.slice(0,27).forEach(id=>e[id].addEventListener("input",refresh));e.executorType.addEventListener("change",switchType);document.getElementById("submitBtn").addEventListener("click",submit);switchType();
+  </script>
+</body>
+</html>
