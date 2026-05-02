@@ -35,6 +35,9 @@
     .object{display:inline-flex;align-items:center;min-height:30px;padding:5px 8px;border:1px solid var(--line);border-radius:999px;background:#fbfcfd;color:#344054;font-size:12px}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     .field-table td:first-child{width:110px;color:var(--muted)}
+    .detail-copy{margin:0 0 12px;color:#344054}
+    .flow-line{margin-bottom:12px;padding:10px;border:1px solid var(--line);border-radius:6px;background:#fbfcfd;color:#344054}
+    .detail-subtitle{margin:14px 0 8px;font-size:14px;font-weight:600}
     .task-chips{display:flex;flex-wrap:wrap;gap:6px}
     .task-chip{display:inline-block;padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:#fbfcfd;color:var(--primary);font-size:12px;font-weight:600}
     .status-ok{color:var(--ok)}
@@ -55,14 +58,16 @@
       <div>
         <section class="panel">
           <h2 id="detailTitle">主线全览</h2>
-          <table class="field-table">
-            <tbody>
-              <tr><td>输入</td><td id="detailInput">-</td></tr>
-              <tr><td>输出</td><td id="detailOutput">-</td></tr>
-              <tr><td>关键动作</td><td id="detailAction">-</td></tr>
-              <tr><td>业务链路</td><td id="detailObjects">-</td></tr>
-            </tbody>
+          <p class="detail-copy" id="detailIntro">-</p>
+          <div class="detail-subtitle">业务链路</div>
+          <div class="flow-line" id="detailObjects">-</div>
+          <div class="detail-subtitle">业务节点</div>
+          <table>
+            <thead><tr><th>业务节点</th><th>作用</th><th>输出对象</th></tr></thead>
+            <tbody id="detailRows"></tbody>
           </table>
+          <div class="detail-subtitle">解耦边界</div>
+          <p class="detail-copy" id="detailBoundary">-</p>
         </section>
 
         <section class="panel">
@@ -204,14 +209,114 @@
       return {...stage, nodeName:node.name, taskId:id, taskName:name, href, taskObject:object};
     })));
 
+    const layerDetails = {
+      data_layer: {
+        intro:"这一层只负责数据，不负责策略，不负责下单。",
+        boundary:"数据层不判断买卖，只提供可信数据。",
+        rows:[
+          ["历史数据","接入历史 K 线、成交、盘口、资金费率等数据","原始数据集"],
+          ["数据质检","检查缺失、重复、异常价格、时间错位","数据版本"],
+          ["特征生成","生成动量、波动率、成交量、资金费率等特征","特征版本"],
+          ["实时行情数据","接入实时价格、盘口、成交、账户状态","实时行情事件"]
+        ]
+      },
+      research_validation_layer: {
+        intro:"这一层只负责研究策略是否有效，不负责实盘交易。",
+        boundary:"研究验证层只能产生“可上线候选策略”，不能直接影响实盘账户。",
+        rows:[
+          ["信号研究","判断信号是否有预测能力","信号定义"],
+          ["策略参数","配置入场、出场、仓位、止损、调仓周期","参数版本"],
+          ["回测验证","验证历史收益、回撤、胜率、手续费、滑点","回测报告"],
+          ["模拟交易","用实时行情模拟策略运行，不真实下单","模拟交易报告"]
+        ]
+      },
+      deployment_governance_layer: {
+        intro:"这一层负责把研究策略变成可以实盘运行的生产配置。",
+        boundary:"上线配置是研究环境和实盘环境之间的隔离层。没有上线配置，实盘信号层不能启动。",
+        rows:[
+          ["上线审批","投资、风控、技术确认是否允许上线","审批记录"],
+          ["上线配置","配置账户、标的、资金上限、风控限额、执行方式","上线配置快照"]
+        ]
+      },
+      live_signal_layer: {
+        intro:"这一层只负责生成实盘信号，不负责决定最终买多少。",
+        boundary:"实盘信号只是“交易观点”，不是订单。正确流向是：实盘信号 -> 组合决策。",
+        rows:[
+          ["实盘信号","根据实时行情和上线策略生成买入、卖出、空仓等信号","实盘信号事件"]
+        ]
+      },
+      portfolio_decision_layer: {
+        intro:"这一层负责把信号变成目标组合。",
+        boundary:"组合决策层不直接下单，只输出“应该调什么仓”。",
+        rows:[
+          ["组合决策","结合信号、当前持仓、现金、风险限额，判断是否调仓","组合决策结果"],
+          ["目标组合","定义希望最终持有什么仓位","目标组合"],
+          ["调仓计划","比较当前持仓和目标持仓，计算需要交易什么","调仓计划"]
+        ]
+      },
+      order_intent_layer: {
+        intro:"这一层负责把调仓计划转换为交易意图，并做交易前风控。",
+        boundary:"订单意图还不是 Hummingbot 任务，也不是交易所订单。",
+        rows:[
+          ["订单意图","表达想交易什么、交易多少、什么时间完成","订单意图"],
+          ["交易前风控检查","检查余额、杠杆、限额、持仓、交易规则","已批准订单意图"]
+        ]
+      },
+      execution_planning_layer: {
+        intro:"这一层负责决定订单怎么执行。",
+        boundary:"执行计划层不直接操作交易所。它只生成执行引擎可以使用的配置。",
+        rows:[
+          ["执行计划","决定市价、限价、分批、做 maker、做 taker 等执行方式","执行计划"],
+          ["Hummingbot 适配器","把平台执行计划转换成 Hummingbot 能理解的任务配置","Hummingbot 任务配置"]
+        ]
+      },
+      hummingbot_execution_layer: {
+        intro:"这一层只负责执行，不负责组合决策，不负责策略复盘。",
+        boundary:"Hummingbot 是执行引擎，不是完整投资系统。它负责接收任务、创建订单、撤单、追踪订单并回传状态和成交事件。",
+        rows:[
+          ["Hummingbot 执行任务","启动 Bot，连接交易所，创建订单，撤单，追踪订单","Hummingbot 执行状态"],
+          ["交易所订单","交易所真实接收的订单","交易所订单"]
+        ]
+      },
+      trading_event_layer: {
+        intro:"这一层负责接收订单状态和成交事件。",
+        boundary:"交易事件层只记录事实，不直接修改策略参数。它需要维护订单意图编号、执行计划编号、Hummingbot 订单编号、交易所订单编号和成交编号之间的映射。",
+        rows:[
+          ["订单事件流","记录订单创建、提交、部分成交、完全成交、撤单、拒单、失败","订单事件"],
+          ["成交事件流","记录真实成交价格、数量、手续费、成交时间","成交事件"]
+        ]
+      },
+      ledger_risk_layer: {
+        intro:"这一层负责把成交事件转成持仓、现金、费用、盈亏和风险。",
+        boundary:"账本风控层只根据成交和行情计算结果，不直接创建订单。",
+        rows:[
+          ["持仓账本","根据成交更新持仓数量、平均成本、可用持仓","持仓快照"],
+          ["现金账本","根据成交更新现金余额、冻结资金、保证金","现金快照"],
+          ["费用账本","记录手续费、资金费率、借贷费用、返佣","费用明细"],
+          ["盈亏计算","计算已实现盈亏、未实现盈亏、当日盈亏","盈亏结果"],
+          ["风险计算","计算杠杆、敞口、回撤、保证金率、亏损限额","风险快照"],
+          ["交易所对账","对比平台账本和交易所账户是否一致","对账结果"]
+        ]
+      },
+      review_iteration_layer: {
+        intro:"这一层负责把实盘结果反馈给研究和参数。",
+        boundary:"复盘迭代层不能直接修改正在运行的生产参数。它只能生成新的参数版本，再重新进入回测、模拟交易、上线审批。",
+        rows:[
+          ["业绩归因","分析收益来自信号、仓位、执行、手续费、资金费率还是市场波动","归因报告"],
+          ["策略复盘","判断策略是否有效、执行是否偏离、风控是否合理","复盘结论"],
+          ["参数迭代","根据复盘结果调整策略参数","新参数版本"]
+        ]
+      }
+    };
+
     const els = {
       stageList: document.getElementById("stageList"),
       rows: document.getElementById("taskRows"),
       detailTitle: document.getElementById("detailTitle"),
-      detailInput: document.getElementById("detailInput"),
-      detailOutput: document.getElementById("detailOutput"),
+      detailIntro: document.getElementById("detailIntro"),
       detailObjects: document.getElementById("detailObjects"),
-      detailAction: document.getElementById("detailAction")
+      detailRows: document.getElementById("detailRows"),
+      detailBoundary: document.getElementById("detailBoundary")
     };
 
     let selectedStage = "";
@@ -235,11 +340,13 @@
 
     function renderDetail(){
       const s = currentStageDef();
+      const detail = s ? layerDetails[s.id] : null;
       els.detailTitle.textContent = s ? `${s.index} ${s.name}` : "主线全览";
-      els.detailInput.textContent = s ? s.input : "历史数据 -> 信号研究 -> 策略参数 -> 回测验证 -> 上线配置 -> 实盘信号";
-      els.detailOutput.textContent = s ? s.output : "目标组合 -> 订单意图 -> 执行任务 -> 订单事件 -> 成交事件 -> 账本风控 -> 复盘迭代";
+      els.detailIntro.textContent = detail ? detail.intro : "每一层只负责一类事情，层与层之间用标准对象传递。";
       els.detailObjects.textContent = s ? s.chain : "历史数据 -> 数据质检 -> 特征生成 -> 信号研究 -> 策略参数 -> 回测验证 -> 上线配置 -> 实盘信号 -> 组合决策 -> 订单意图 -> 执行计划 -> 执行任务 -> 交易事件 -> 账本风控 -> 复盘迭代";
-      els.detailAction.textContent = s ? s.action : "按交易生命周期查看全部原型入口";
+      const tableRows = detail ? detail.rows : stages.map(stage => [stage.name, stage.chain, stage.layer]);
+      els.detailRows.innerHTML = tableRows.map(row => `<tr><td>${escapeHtml(row[0])}</td><td>${escapeHtml(row[1])}</td><td>${escapeHtml(row[2])}</td></tr>`).join("");
+      els.detailBoundary.textContent = detail ? detail.boundary : "系统大脑和 Hummingbot 执行层解耦；信号不直接下单，Hummingbot 不承担组合、风控、账本和复盘职责。";
     }
 
     function renderTasks(){
