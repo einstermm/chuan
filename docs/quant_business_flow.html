@@ -13,7 +13,7 @@
     h1{font-size:22px}
     h2{font-size:17px;margin-bottom:12px}
     h3{font-size:15px;margin-bottom:8px}
-    main{max-width:1280px;margin:0 auto;padding:18px}
+    main{max-width:1560px;margin:0 auto;padding:18px}
     a{color:var(--primary);text-decoration:none;font-weight:600}
     a:hover{text-decoration:underline}
     button{min-height:34px;padding:7px 12px;border:1px solid #b6c2d1;border-radius:4px;background:#fff;color:var(--text);cursor:pointer;font:inherit}
@@ -23,7 +23,7 @@
     th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
     th{background:#f8fafc;color:#344054;font-size:13px;font-weight:600}
     .panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;margin-bottom:14px}
-    .layout{display:grid;grid-template-columns:320px 1fr;gap:14px}
+    .layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:14px}
     .stage-list{display:grid;gap:8px}
     .stage-card{width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;background:#fff;text-align:left}
     .stage-card.active{border-color:var(--primary);box-shadow:inset 3px 0 0 var(--primary)}
@@ -34,7 +34,9 @@
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     .field-table td:first-child{width:110px;color:var(--muted)}
     .detail-copy{margin:0 0 12px;color:#344054}
-    .flow-line{margin-bottom:12px;padding:10px;border:1px solid var(--line);border-radius:6px;background:#fbfcfd;color:#344054}
+    .flow-line{margin-bottom:12px;color:#344054;overflow:auto}
+    .flow-table th,.flow-table td{white-space:normal}
+    .flow-table td:nth-child(1){width:150px}
     .detail-subtitle{margin:14px 0 8px;font-size:14px;font-weight:600}
     .task-chips{display:flex;flex-wrap:wrap;gap:6px}
     .task-chip{display:inline-block;padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:#fbfcfd;color:var(--primary);font-size:12px;font-weight:600}
@@ -59,11 +61,6 @@
           <p class="detail-copy" id="detailIntro">-</p>
           <div class="detail-subtitle">业务链路</div>
           <div class="flow-line" id="detailObjects">-</div>
-          <div class="detail-subtitle">业务节点</div>
-          <table>
-            <thead><tr><th>业务节点</th><th>作用</th><th>输出对象</th></tr></thead>
-            <tbody id="detailRows"></tbody>
-          </table>
           <div class="detail-subtitle">解耦边界</div>
           <p class="detail-copy" id="detailBoundary">-</p>
         </section>
@@ -201,6 +198,44 @@
       return {...stage, nodeName:node.name, taskId:id, taskName:name, href, taskObject:object};
     })));
 
+    const nodeRelations = [
+      {seq:1,name:"历史数据",display:"历史数据 HistoricalData",upstream:"外部行情源、交易所历史数据、数据供应商",downstream:"数据质检",trace:"原始数据来源、时间范围、品种、粒度、版本"},
+      {seq:2,name:"数据质检",display:"数据质检 DataQualityCheck",upstream:"历史数据、实时行情数据",downstream:"特征生成",trace:"缺失、重复、异常价格、时间戳错位、数据延迟"},
+      {seq:3,name:"特征生成",display:"特征生成 FeatureGeneration",upstream:"数据质检后的数据",downstream:"信号研究、回测验证、模拟交易、实盘信号",trace:"特征版本、计算逻辑、窗口参数、依赖数据"},
+      {seq:4,name:"实时行情数据",display:"实时行情数据 LiveMarketData",upstream:"交易所实时行情、盘口、成交、K线",downstream:"实盘信号、执行中风控监控、风险计算",trace:"实时价格、盘口深度、延迟、行情质量"},
+      {seq:5,name:"信号研究",display:"信号研究 SignalResearch",upstream:"特征生成、历史数据、研究假设",downstream:"策略参数",trace:"信号逻辑、因子逻辑、研究结论"},
+      {seq:6,name:"策略参数",display:"策略参数 StrategyParameterSet",upstream:"信号研究、参数迭代",downstream:"回测验证、模拟交易、上线审批、上线配置",trace:"参数版本、阈值、周期、仓位规则"},
+      {seq:7,name:"回测验证",display:"回测验证 BacktestRun",upstream:"策略参数、历史数据、特征",downstream:"模拟交易、上线审批",trace:"回测区间、收益、回撤、夏普、换手、费用假设"},
+      {seq:8,name:"模拟交易",display:"模拟交易 PaperTradingRun",upstream:"策略参数、实时或仿真实时行情、回测结果",downstream:"上线审批",trace:"实时环境下的策略稳定性、延迟、滑点"},
+      {seq:9,name:"上线审批",display:"上线审批 DeploymentApproval",upstream:"回测验证、模拟交易、风险评估、人工审批",downstream:"上线配置",trace:"谁审批、审批时间、审批依据、上线范围"},
+      {seq:10,name:"上线配置",display:"上线配置 DeploymentConfig",upstream:"上线审批、策略参数、账户配置、风控规则",downstream:"实盘信号、交易前风控检查、执行中风控监控",trace:"部署版本、账户、品种、限额、开关状态"},
+      {seq:11,name:"实盘信号",display:"实盘信号 LiveSignal",upstream:"上线配置、实时行情数据、特征生成",downstream:"组合决策",trace:"信号方向、强度、置信度、策略版本"},
+      {seq:12,name:"组合决策",display:"组合决策 PortfolioDecision",upstream:"实盘信号、当前持仓、现金、风险状态",downstream:"目标组合",trace:"多信号合成、仓位约束、风险预算"},
+      {seq:13,name:"目标组合",display:"目标组合 PortfolioTarget",upstream:"组合决策",downstream:"调仓计划",trace:"目标资产、目标权重、目标数量"},
+      {seq:14,name:"调仓计划",display:"调仓计划 RebalancePlan",upstream:"目标组合、当前持仓、现金账本",downstream:"订单意图",trace:"当前组合与目标组合之间的差额"},
+      {seq:15,name:"订单意图",display:"订单意图 OrderIntent",upstream:"调仓计划",downstream:"交易前风控检查",trace:"买卖方向、数量、价格约束、账户、交易标的"},
+      {seq:16,name:"交易前风控检查",display:"交易前风控检查 PreTradeRiskCheck",upstream:"订单意图、上线配置、风险计算、持仓账本、现金账本",downstream:"执行计划",trace:"是否允许交易、是否超限、是否拒单或调整"},
+      {seq:17,name:"执行计划",display:"执行计划 ExecutionPlan",upstream:"交易前风控检查通过的订单意图",downstream:"Hummingbot 适配器",trace:"执行方式、拆单规则、限价/市价、时间策略"},
+      {seq:18,name:"Hummingbot 适配器",display:"Hummingbot 适配器 HummingbotAdapter",upstream:"执行计划",downstream:"Hummingbot 执行任务",trace:"系统内部订单到 Hummingbot 指令的转换"},
+      {seq:19,name:"Hummingbot 执行任务",display:"Hummingbot 执行任务 HummingbotTask",upstream:"Hummingbot 适配器",downstream:"执行中风控监控、交易所订单",trace:"任务状态、执行进度、任务参数"},
+      {seq:20,name:"执行中风控监控",display:"执行中风控监控 InTradeRiskMonitor",upstream:"Hummingbot 执行任务、交易所订单、实时行情、风控配置",downstream:"交易所订单、撤单/暂停/调整动作",trace:"执行过程中的风险、滑点、异常波动"},
+      {seq:21,name:"交易所订单",display:"交易所订单 ExchangeOrder",upstream:"Hummingbot 执行任务、执行中风控监控",downstream:"订单事件流",trace:"交易所订单号、客户订单号、订单状态"},
+      {seq:22,name:"订单事件流",display:"订单事件流 OrderEventStream",upstream:"交易所订单、交易所回报",downstream:"成交事件流",trace:"提交、确认、部分成交、完全成交、撤单、拒单"},
+      {seq:23,name:"成交事件流",display:"成交事件流 FillEventStream",upstream:"订单事件流",downstream:"成交幂等处理",trace:"成交编号、成交价格、成交数量、成交时间"},
+      {seq:24,name:"成交幂等处理",display:"成交幂等处理 FillIdempotencyProcessor",upstream:"成交事件流",downstream:"持仓账本、现金账本、费用账本",trace:"防止重复成交、乱序事件、重复记账"},
+      {seq:25,name:"持仓账本",display:"持仓账本 PositionLedger",upstream:"成交幂等处理",downstream:"盈亏计算、风险计算、调仓计划、交易前风控检查",trace:"持仓数量、成本、持仓变化"},
+      {seq:26,name:"现金账本",display:"现金账本 CashLedger",upstream:"成交幂等处理",downstream:"盈亏计算、风险计算、调仓计划、交易前风控检查",trace:"可用现金、冻结现金、资金变化"},
+      {seq:27,name:"费用账本",display:"费用账本 FeeLedger",upstream:"成交幂等处理",downstream:"盈亏计算、业绩归因",trace:"手续费、资金费率、交易成本"},
+      {seq:28,name:"盈亏计算",display:"盈亏计算 PnLEngine",upstream:"持仓账本、现金账本、费用账本、实时行情",downstream:"风险计算、业绩归因、策略复盘",trace:"已实现盈亏、未实现盈亏、净值曲线"},
+      {seq:29,name:"风险计算",display:"风险计算 RiskEngine",upstream:"持仓账本、现金账本、盈亏计算、实时行情",downstream:"交易前风控检查、执行中风控监控、组合决策、策略复盘",trace:"敞口、杠杆、回撤、VaR、集中度"},
+      {seq:30,name:"交易所对账",display:"交易所对账 Reconciliation",upstream:"交易所订单、成交事件、内部账本、交易所账户数据",downstream:"策略复盘、账本修正、异常处理",trace:"内外部持仓、现金、成交、费用是否一致"},
+      {seq:31,name:"业绩归因",display:"业绩归因 Attribution",upstream:"盈亏计算、费用账本、持仓账本、交易记录",downstream:"策略复盘",trace:"收益来源、亏损来源、费用影响、滑点影响"},
+      {seq:32,name:"策略复盘",display:"策略复盘 StrategyReview",upstream:"业绩归因、风险计算、交易所对账、执行质量",downstream:"参数迭代",trace:"策略是否继续、暂停、调参、下线"},
+      {seq:33,name:"参数迭代",display:"参数迭代 ParameterIteration",upstream:"策略复盘",downstream:"策略参数、信号研究、回测验证",trace:"新参数、新假设、新研究方向"}
+    ];
+
+    const nodeRelationByName = Object.fromEntries(nodeRelations.map(node => [node.name, node]));
+
     const layerDetails = {
       data_layer: {
         intro:"这一层只负责数据，不负责策略，不负责下单。",
@@ -308,7 +343,6 @@
       detailTitle: document.getElementById("detailTitle"),
       detailIntro: document.getElementById("detailIntro"),
       detailObjects: document.getElementById("detailObjects"),
-      detailRows: document.getElementById("detailRows"),
       detailBoundary: document.getElementById("detailBoundary")
     };
 
@@ -336,10 +370,27 @@
       const detail = s ? layerDetails[s.id] : null;
       els.detailTitle.textContent = s ? `${s.index} ${s.name}` : "主线全览";
       els.detailIntro.textContent = detail ? detail.intro : "每一层只负责一类事情，层与层之间用标准对象传递。";
-      els.detailObjects.textContent = s ? s.chain : "历史数据 -> 数据质检 -> 特征生成 -> 信号研究 -> 策略参数 -> 回测验证 -> 上线配置 -> 实盘信号 -> 组合决策 -> 订单意图 -> 执行计划 -> 执行任务 -> 交易事件 -> 账本风控 -> 复盘迭代";
-      const tableRows = detail ? detail.rows : stages.map(stage => [stage.name, stage.chain, stage.layer]);
-      els.detailRows.innerHTML = tableRows.map(row => `<tr><td>${escapeHtml(row[0])}</td><td>${escapeHtml(row[1])}</td><td>${escapeHtml(row[2])}</td></tr>`).join("");
+      els.detailObjects.innerHTML = renderBusinessChain(s);
       els.detailBoundary.textContent = detail ? detail.boundary : "系统大脑和 Hummingbot 执行层解耦；信号不直接下单，Hummingbot 不承担组合、风控、账本和复盘职责。";
+    }
+
+    function renderBusinessChain(stage){
+      const rows = stage ? stage.nodes.map(node => nodeRelationByName[node.name]).filter(Boolean) : nodeRelations;
+      return `<table class="flow-table">
+          <thead><tr><th>业务节点</th><th>直接上游</th><th>直接下游</th><th>作用</th><th>输出对象</th></tr></thead>
+          <tbody>${rows.map(row => `<tr>
+            <td>${escapeHtml(row.name)}</td>
+            <td>${escapeHtml(row.upstream)}</td>
+            <td>${escapeHtml(row.downstream)}</td>
+            <td>${escapeHtml(nodeDetail(row.name, 1))}</td>
+            <td>${escapeHtml(nodeDetail(row.name, 2))}</td>
+          </tr>`).join("")}</tbody>
+        </table>`;
+    }
+
+    function nodeDetail(name, index){
+      const row = Object.values(layerDetails).flatMap(detail => detail.rows).find(item => item[0] === name);
+      return row ? row[index] : "-";
     }
 
     function render(){
