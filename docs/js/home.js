@@ -1,14 +1,3 @@
-const navItems = [
-  ["首页", "home.html"],
-  ["策略", "strategies.html"],
-  ["订单", "orders.html"],
-  ["账本", "ledger.html"],
-  ["风控", "risk.html"],
-  ["日志", "logs.html"],
-  ["设置", "settings.html"]
-];
-const currentNav = "首页";
-
 const statusCards = [
   ["系统状态", "RUNNING", "数据延迟：正常", "ok"],
   ["Hummingbot", "CONNECTED", "运行任务数：1　|　异常任务数：0", "ok"],
@@ -59,21 +48,6 @@ const events = [
   ["10:00:10", "Reconciliation", "PASS"]
 ];
 
-function renderNav() {
-  const nav = document.getElementById("nav");
-  nav.innerHTML = navItems.map(item => (
-    `<button class="nav-item ${item[0] === currentNav ? "active" : ""}" type="button" data-href="${item[1]}">${item[0]}</button>`
-  )).join("");
-
-  nav.querySelectorAll(".nav-item").forEach(button => {
-    button.addEventListener("click", () => {
-      if (!button.classList.contains("active")) {
-        window.location.href = button.dataset.href;
-      }
-    });
-  });
-}
-
 function renderStatusCards() {
   document.getElementById("statusCards").innerHTML = statusCards.map(card => (
     `<article class="status-card">
@@ -123,23 +97,25 @@ function renderEvents() {
 }
 
 function formatValue(value) {
-  const text = String(value);
-  if (["RUNNING", "CONNECTED", "NORMAL", "PASS", "BUY", "FILLED", "BOOKED"].includes(text) || text.startsWith("+")) {
-    return `<span class="ok">${text}</span>`;
-  }
-  if (["REBALANCE", "LIMIT"].includes(text) || text.includes("订单草图")) {
-    return `<span class="blue">${text}</span>`;
-  }
-  if (["PARTIAL", "BOOKED_PARTIAL"].includes(text)) {
-    return `<span class="warn">${text}</span>`;
-  }
-  if (["REJECTED", "REJECTED_BY_RISK", "NOT_SENT"].includes(text)) {
-    return `<span class="danger-text">${text}</span>`;
-  }
-  return text;
+  return formatValueByRules(value, {
+    ok: {
+      exact: ["RUNNING", "CONNECTED", "NORMAL", "PASS", "BUY", "FILLED", "BOOKED"],
+      startsWith: ["+"]
+    },
+    blue: {
+      exact: ["REBALANCE", "LIMIT"],
+      includes: ["订单草图"]
+    },
+    warn: {
+      exact: ["PARTIAL", "BOOKED_PARTIAL"]
+    },
+    danger: {
+      exact: ["REJECTED", "REJECTED_BY_RISK", "NOT_SENT"]
+    }
+  });
 }
 
-renderNav();
+renderNav("首页");
 renderStatusCards();
 renderPipeline();
 renderDecision();

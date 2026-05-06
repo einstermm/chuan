@@ -1,0 +1,164 @@
+.topbar,
+.selected-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.filter-panel {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(110px, 1fr));
+  gap: 12px;
+}
+
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter label {
+  white-space: nowrap;
+  color: #344054;
+  font-weight: 700;
+}
+
+.table-title {
+  margin: 8px 0 8px;
+  font-weight: 700;
+}
+
+.selected-panel {
+  padding-top: 12px;
+}
+
+.status-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.detail-card {
+  padding: 14px 16px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(430px, 0.9fr) minmax(540px, 1.1fr);
+  gap: 14px;
+}
+
+.detail-stack {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.kv-grid {
+  display: grid;
+  grid-template-columns: 130px 1fr 130px 1fr;
+  gap: 8px 18px;
+}
+
+.kv-grid.two-col {
+  grid-template-columns: 130px 1fr;
+}
+
+.kv-label {
+  color: #344054;
+}
+
+.kv-value {
+  min-width: 0;
+}
+
+.split-table {
+  margin-top: 12px;
+}
+
+.timeline {
+  display: grid;
+  gap: 0;
+}
+
+.timeline-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.raw-box {
+  min-height: 360px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #344054;
+  overflow: auto;
+  font-family: Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+
+@media (max-width: 1380px) {
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 980px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+  }
+
+  .workspace {
+    margin-left: 0;
+    padding: 16px;
+  }
+
+  .topbar,
+  .selected-head,
+  .filter-panel {
+    display: block;
+  }
+
+  .top-actions {
+    margin-top: 14px;
+  }
+
+  .summary-grid,
+  .filters,
+  .kv-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.topbar,
+.selected-head {
+  gap: 12px;
+}
+
+.detail-grid,
+.detail-stack {
+  gap: 10px;
+}

@@ -1,14 +1,3 @@
-const navItems = [
-  ["首页", "home.html"],
-  ["策略", "strategies.html"],
-  ["订单", "orders.html"],
-  ["账本", "ledger.html"],
-  ["风控", "risk.html"],
-  ["日志", "logs.html"],
-  ["设置", "settings.html"]
-];
-const currentNav = "账本";
-
 const summaries = [
   ["当前权益", "16,120.30 USDT", "账户总资产价值", "blue"],
   ["可用现金", "8,018.58 USDT", "可用于新订单", "blue"],
@@ -161,30 +150,6 @@ const rawObject = {
   reconciliation_status: "PASS"
 };
 
-function renderNav() {
-  const nav = document.getElementById("nav");
-  nav.innerHTML = navItems.map(item => (
-    `<button class="nav-item ${item[0] === currentNav ? "active" : ""}" type="button" data-href="${item[1]}">${item[0]}</button>`
-  )).join("");
-  nav.querySelectorAll(".nav-item").forEach(button => {
-    button.addEventListener("click", () => {
-      if (!button.classList.contains("active")) {
-        window.location.href = button.dataset.href;
-      }
-    });
-  });
-}
-
-function renderSummaries() {
-  document.getElementById("summaryGrid").innerHTML = summaries.map(item => (
-    `<article class="summary-card">
-      <div class="summary-label">${item[0]}</div>
-      <div class="summary-value ${item[3]}">${item[1]}</div>
-      <div class="summary-meta">${item[2]}</div>
-    </article>`
-  )).join("");
-}
-
 function renderFilters() {
   document.getElementById("filters").innerHTML = filters.map(item => {
     if (item[0] === "搜索") {
@@ -292,24 +257,25 @@ function renderTimeline(rows) {
 }
 
 function formatValue(value) {
-  const text = String(value);
-  if (["PASS", "ACCEPTED", "BOOKED", "ACCEPTED_AND_BOOKED"].includes(text) || text.startsWith("+")) {
-    return `<span class="ok">${text}</span>`;
-  }
-  if (text.startsWith("LE-") || text.startsWith("OI-") || text.startsWith("OKX-") || text.startsWith("REC-") || text.startsWith("HB-") || text.startsWith("EP-") || text.startsWith("SIG-")) {
-    return `<span class="blue">${text}</span>`;
-  }
-  if (["BOOKED_PARTIAL", "DUPLICATE", "SKIPPED_DUPLICATE"].includes(text)) {
-    return `<span class="warn">${text}</span>`;
-  }
-  if (text.startsWith("-")) {
-    return `<span class="danger-text">${text}</span>`;
-  }
-  return text;
+  return formatValueByRules(value, {
+    ok: {
+      exact: ["PASS", "ACCEPTED", "BOOKED", "ACCEPTED_AND_BOOKED"],
+      startsWith: ["+"]
+    },
+    blue: {
+      startsWith: ["LE-", "OI-", "OKX-", "REC-", "HB-", "EP-", "SIG-"]
+    },
+    warn: {
+      exact: ["BOOKED_PARTIAL", "DUPLICATE", "SKIPPED_DUPLICATE"]
+    },
+    danger: {
+      startsWith: ["-"]
+    }
+  });
 }
 
-renderNav();
-renderSummaries();
+renderNav("账本");
+renderSummaryCards(summaries);
 renderFilters();
 renderAssets();
 renderLedgerTabs();

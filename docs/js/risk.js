@@ -1,14 +1,3 @@
-const navItems = [
-  ["首页", "home.html"],
-  ["策略", "strategies.html"],
-  ["订单", "orders.html"],
-  ["账本", "ledger.html"],
-  ["风控", "risk.html"],
-  ["日志", "logs.html"],
-  ["设置", "settings.html"]
-];
-const currentNav = "风控";
-
 const summaries = [
   ["全局风险状态", "NORMAL", "允许新订单：YES", "ok"],
   ["日亏损使用", "18%", "-58.20 / -320 USDT", "warn"],
@@ -125,30 +114,6 @@ const rawObject = {
   level: "HIGH"
 };
 
-function renderNav() {
-  const nav = document.getElementById("nav");
-  nav.innerHTML = navItems.map(item => (
-    `<button class="nav-item ${item[0] === currentNav ? "active" : ""}" type="button" data-href="${item[1]}">${item[0]}</button>`
-  )).join("");
-  nav.querySelectorAll(".nav-item").forEach(button => {
-    button.addEventListener("click", () => {
-      if (!button.classList.contains("active")) {
-        window.location.href = button.dataset.href;
-      }
-    });
-  });
-}
-
-function renderSummaries() {
-  document.getElementById("summaryGrid").innerHTML = summaries.map(item => (
-    `<article class="summary-card">
-      <div class="summary-label">${item[0]}</div>
-      <div class="summary-value ${item[3]}">${item[1]}</div>
-      <div class="summary-meta">${item[2]}</div>
-    </article>`
-  )).join("");
-}
-
 function renderMeters() {
   document.getElementById("meterGrid").innerHTML = meters.map(item => (
     `<div class="meter">
@@ -238,24 +203,28 @@ function renderDetailContent() {
 }
 
 function formatValue(value) {
-  const text = String(value);
-  if (["NORMAL", "YES", "PASS", "CLOSED", "OFF", "RUNNING"].includes(text)) {
-    return `<span class="ok">${text}</span>`;
-  }
-  if (text.startsWith("RE-") || text.startsWith("OI-") || text.startsWith("SIG-") || text === "查看") {
-    return `<span class="blue">${text}</span>`;
-  }
-  if (["MEDIUM", "WARNING", "OPEN", "MANUAL_REVIEW", "ADJUSTED", "PAUSED"].includes(text) || text.includes("拆")) {
-    return `<span class="warn">${text}</span>`;
-  }
-  if (["HIGH", "CRITICAL", "FAIL", "REJECTED", "ACTIVE", "REJECT_ORDER", "KILL_SWITCH", "BLOCKED"].includes(text) || text.startsWith("-") || text.includes("diff") || text.includes("latency")) {
-    return `<span class="danger-text">${text}</span>`;
-  }
-  return text;
+  return formatValueByRules(value, {
+    ok: {
+      exact: ["NORMAL", "YES", "PASS", "CLOSED", "OFF", "RUNNING"]
+    },
+    blue: {
+      exact: ["查看"],
+      startsWith: ["RE-", "OI-", "SIG-"]
+    },
+    warn: {
+      exact: ["MEDIUM", "WARNING", "OPEN", "MANUAL_REVIEW", "ADJUSTED", "PAUSED"],
+      includes: ["拆"]
+    },
+    danger: {
+      exact: ["HIGH", "CRITICAL", "FAIL", "REJECTED", "ACTIVE", "REJECT_ORDER", "KILL_SWITCH", "BLOCKED"],
+      startsWith: ["-"],
+      includes: ["diff", "latency"]
+    }
+  });
 }
 
-renderNav();
-renderSummaries();
+renderNav("风控");
+renderSummaryCards(summaries);
 renderMeters();
 renderRiskTabs();
 renderRiskTable();

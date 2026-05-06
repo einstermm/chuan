@@ -1,14 +1,3 @@
-const navItems = [
-  ["首页", "home.html"],
-  ["策略", "strategies.html"],
-  ["订单", "orders.html"],
-  ["账本", "ledger.html"],
-  ["风控", "risk.html"],
-  ["日志", "logs.html"],
-  ["设置", "settings.html"]
-];
-const currentNav = "订单";
-
 const summaries = [
   ["执行中订单", "3", "等待成交或继续执行", "ok"],
   ["部分成交", "1", "需关注剩余未成交数量", "warn"],
@@ -98,30 +87,6 @@ const rawObject = {
   status: "PARTIALLY_FILLED",
   booked_status: "BOOKED_PARTIAL"
 };
-
-function renderNav() {
-  const nav = document.getElementById("nav");
-  nav.innerHTML = navItems.map(item => (
-    `<button class="nav-item ${item[0] === currentNav ? "active" : ""}" type="button" data-href="${item[1]}">${item[0]}</button>`
-  )).join("");
-  nav.querySelectorAll(".nav-item").forEach(button => {
-    button.addEventListener("click", () => {
-      if (!button.classList.contains("active")) {
-        window.location.href = button.dataset.href;
-      }
-    });
-  });
-}
-
-function renderSummaries() {
-  document.getElementById("summaryGrid").innerHTML = summaries.map(item => (
-    `<article class="summary-card">
-      <div class="summary-label">${item[0]}</div>
-      <div class="summary-value ${item[3]}">${item[1]}</div>
-      <div class="summary-meta">${item[2]}</div>
-    </article>`
-  )).join("");
-}
 
 function renderFilters() {
   document.getElementById("filters").innerHTML = filters.map(item => {
@@ -222,24 +187,26 @@ function renderFillLedgerCard(standalone = false) {
 }
 
 function formatValue(value) {
-  const text = String(value);
-  if (["PASS", "BUY", "BOOKED", "APPROVED", "NORMAL", "通过", "ACCEPTED", "ACCEPTED_AND_BOOKED"].includes(text) || text.includes("BTC +")) {
-    return `<span class="ok">${text}</span>`;
-  }
-  if (["LIMIT", "POSITION_EXIT"].includes(text) || text.startsWith("OI-") || text.startsWith("HB-") || text.startsWith("OKX-")) {
-    return `<span class="blue">${text}</span>`;
-  }
-  if (["PARTIAL", "BOOKED_PARTIAL", "CANCELLED_BY_TIMEOUT", "DUPLICATE_SKIPPED"].includes(text)) {
-    return `<span class="warn">${text}</span>`;
-  }
-  if (["SELL", "REJECTED", "REJECTED_BY_RISK", "FAILED", "NOT_SENT", "NOT_BOOKED"].includes(text)) {
-    return `<span class="danger-text">${text}</span>`;
-  }
-  return text;
+  return formatValueByRules(value, {
+    ok: {
+      exact: ["PASS", "BUY", "BOOKED", "APPROVED", "NORMAL", "通过", "ACCEPTED", "ACCEPTED_AND_BOOKED"],
+      includes: ["BTC +"]
+    },
+    blue: {
+      exact: ["LIMIT", "POSITION_EXIT"],
+      startsWith: ["OI-", "HB-", "OKX-"]
+    },
+    warn: {
+      exact: ["PARTIAL", "BOOKED_PARTIAL", "CANCELLED_BY_TIMEOUT", "DUPLICATE_SKIPPED"]
+    },
+    danger: {
+      exact: ["SELL", "REJECTED", "REJECTED_BY_RISK", "FAILED", "NOT_SENT", "NOT_BOOKED"]
+    }
+  });
 }
 
-renderNav();
-renderSummaries();
+renderNav("订单");
+renderSummaryCards(summaries);
 renderFilters();
 renderOrders();
 renderTabs();

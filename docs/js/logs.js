@@ -1,14 +1,3 @@
-const navItems = [
-  ["首页", "home.html"],
-  ["策略", "strategies.html"],
-  ["订单", "orders.html"],
-  ["账本", "ledger.html"],
-  ["风控", "risk.html"],
-  ["日志", "logs.html"],
-  ["设置", "settings.html"]
-];
-const currentNav = "日志";
-
 const summaries = [
   ["今日事件总数", "1,286", "系统消息持续写入", "blue"],
   ["错误 / 告警", "12", "需关注 ERROR / WARN 事件", "danger"],
@@ -99,30 +88,6 @@ const rawPayload = {
   trace_id: "TRC-7844",
   status: "MANUAL_REVIEW"
 };
-
-function renderNav() {
-  const nav = document.getElementById("nav");
-  nav.innerHTML = navItems.map(item => (
-    `<button class="nav-item ${item[0] === currentNav ? "active" : ""}" type="button" data-href="${item[1]}">${item[0]}</button>`
-  )).join("");
-  nav.querySelectorAll(".nav-item").forEach(button => {
-    button.addEventListener("click", () => {
-      if (!button.classList.contains("active")) {
-        window.location.href = button.dataset.href;
-      }
-    });
-  });
-}
-
-function renderSummaries() {
-  document.getElementById("summaryGrid").innerHTML = summaries.map(item => (
-    `<article class="summary-card">
-      <div class="summary-label">${item[0]}</div>
-      <div class="summary-value ${item[3]}">${item[1]}</div>
-      <div class="summary-meta">${item[2]}</div>
-    </article>`
-  )).join("");
-}
 
 function renderFilters() {
   document.getElementById("filters").innerHTML = filters.map(item => {
@@ -222,27 +187,30 @@ function renderTimeline(rows) {
 }
 
 function formatValue(value) {
-  const text = String(value);
-  if (["INFO", "RECORDED", "NORMAL"].includes(text)) {
-    return `<span class="ok">${text}</span>`;
-  }
-  if (text.startsWith("EVT-") || text.startsWith("TRC-") || text.startsWith("OI-") || text.startsWith("HB-") || text.startsWith("PLAN-") || text === "查看") {
-    return `<span class="blue">${text}</span>`;
-  }
-  if (["WARN", "OPEN"].includes(text)) {
-    return `<span class="warn">${text}</span>`;
-  }
-  if (["ERROR", "ACTIVE", "FAIL"].includes(text) || text.startsWith("-") || text.includes("diff")) {
-    return `<span class="danger-text">${text}</span>`;
-  }
-  if (["MANUAL_REVIEW"].includes(text)) {
-    return `<span class="purple">${text}</span>`;
-  }
-  return text;
+  return formatValueByRules(value, {
+    ok: {
+      exact: ["INFO", "RECORDED", "NORMAL"]
+    },
+    blue: {
+      exact: ["查看"],
+      startsWith: ["EVT-", "TRC-", "OI-", "HB-", "PLAN-"]
+    },
+    warn: {
+      exact: ["WARN", "OPEN"]
+    },
+    danger: {
+      exact: ["ERROR", "ACTIVE", "FAIL"],
+      startsWith: ["-"],
+      includes: ["diff"]
+    },
+    purple: {
+      exact: ["MANUAL_REVIEW"]
+    }
+  });
 }
 
-renderNav();
-renderSummaries();
+renderNav("日志");
+renderSummaryCards(summaries);
 renderFilters();
 renderEvents();
 renderDetailTabs();

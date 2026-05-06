@@ -1,14 +1,3 @@
-const navItems = [
-  ["首页", "home.html"],
-  ["策略", "strategies.html"],
-  ["订单", "orders.html"],
-  ["账本", "ledger.html"],
-  ["风控", "risk.html"],
-  ["日志", "logs.html"],
-  ["设置", "settings.html"]
-];
-const currentNav = "设置";
-
 const summaries = [
   ["当前环境", "Live", "账户：acct_spot_001", "blue"],
   ["交易所连接", "OKX CONNECTED", "最近检测：10 秒前", "ok"],
@@ -101,30 +90,6 @@ const changes = [
   ["11:20", "Telegram Bot", "未配置", "@zane_quant_bot", "admin", "已发布"],
   ["10:55", "日志保留", "14 天", "30 天", "admin", "已发布"]
 ];
-
-function renderNav() {
-  const nav = document.getElementById("nav");
-  nav.innerHTML = navItems.map(item => (
-    `<button class="nav-item ${item[0] === currentNav ? "active" : ""}" type="button" data-href="${item[1]}">${item[0]}</button>`
-  )).join("");
-  nav.querySelectorAll(".nav-item").forEach(button => {
-    button.addEventListener("click", () => {
-      if (!button.classList.contains("active")) {
-        window.location.href = button.dataset.href;
-      }
-    });
-  });
-}
-
-function renderSummaries() {
-  document.getElementById("summaryGrid").innerHTML = summaries.map(item => (
-    `<article class="summary-card">
-      <div class="summary-label">${item[0]}</div>
-      <div class="summary-value ${item[3]}">${item[1]}</div>
-      <div class="summary-meta">${item[2]}</div>
-    </article>`
-  )).join("");
-}
 
 function renderTabs() {
   document.getElementById("settingTabs").innerHTML = settingTabs.map(tab => (
@@ -221,24 +186,27 @@ function renderChanges() {
 }
 
 function formatValue(value) {
-  const text = String(value);
-  if (["CONNECTED", "开启", "已开启", "已配置", "已发布", "成功", "PASS", "NORMAL"].includes(text) || text.includes("已发布")) {
-    return `<span class="ok">${text}</span>`;
-  }
-  if (["Live", "LIMIT", "Object Storage", "System Admin", "admin"].includes(text) || text.startsWith("v")) {
-    return `<span class="blue">${text}</span>`;
-  }
-  if (["Paper", "未开启"].includes(text) || text.includes("需要确认")) {
-    return `<span class="warn">${text}</span>`;
-  }
-  if (text.startsWith("-")) {
-    return `<span class="danger-text">${text}</span>`;
-  }
-  return text;
+  return formatValueByRules(value, {
+    ok: {
+      exact: ["CONNECTED", "开启", "已开启", "已配置", "已发布", "成功", "PASS", "NORMAL"],
+      includes: ["已发布"]
+    },
+    blue: {
+      exact: ["Live", "LIMIT", "Object Storage", "System Admin", "admin"],
+      startsWith: ["v"]
+    },
+    warn: {
+      exact: ["Paper", "未开启"],
+      includes: ["需要确认"]
+    },
+    danger: {
+      startsWith: ["-"]
+    }
+  });
 }
 
-renderNav();
-renderSummaries();
+renderNav("设置");
+renderSummaryCards(summaries);
 renderTabs();
 renderSettingContent();
 renderChanges();

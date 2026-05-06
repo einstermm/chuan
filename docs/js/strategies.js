@@ -1,14 +1,3 @@
-const navItems = [
-  ["首页", "home.html"],
-  ["策略", "strategies.html"],
-  ["订单", "orders.html"],
-  ["账本", "ledger.html"],
-  ["风控", "risk.html"],
-  ["日志", "logs.html"],
-  ["设置", "settings.html"]
-];
-const currentNav = "策略";
-
 const summaries = [
   ["运行中策略", "2", "正在生成信号并决策", "ok"],
   ["待上线审批", "1", "等待风险审批上线", "warn"],
@@ -94,30 +83,6 @@ const governance = [
 
 const checks = ["参数版本已锁定", "回测通过", "模拟交易通过", "风控规则已配置"];
 
-function renderNav() {
-  const nav = document.getElementById("nav");
-  nav.innerHTML = navItems.map(item => (
-    `<button class="nav-item ${item[0] === currentNav ? "active" : ""}" type="button" data-href="${item[1]}">${item[0]}</button>`
-  )).join("");
-  nav.querySelectorAll(".nav-item").forEach(button => {
-    button.addEventListener("click", () => {
-      if (!button.classList.contains("active")) {
-        window.location.href = button.dataset.href;
-      }
-    });
-  });
-}
-
-function renderSummaries() {
-  document.getElementById("summaryGrid").innerHTML = summaries.map(item => (
-    `<article class="summary-card">
-      <div class="summary-label">${item[0]}</div>
-      <div class="summary-value ${item[3]}">${item[1]}</div>
-      <div class="summary-meta">${item[2]}</div>
-    </article>`
-  )).join("");
-}
-
 function renderFilters() {
   document.getElementById("filters").innerHTML = filters.map(item => {
     if (item[0] === "搜索") {
@@ -186,24 +151,26 @@ function renderGovernance() {
 }
 
 function formatValue(value) {
-  const text = String(value);
-  if (["RUNNING", "APPROVED", "NORMAL", "BUY", "REBALANCE"].includes(text) || text.startsWith("+")) {
-    return `<span class="ok">${text}</span>`;
-  }
-  if (["PAPER_RUNNING", "生成订单草图", "Live"].includes(text)) {
-    return `<span class="blue">${text}</span>`;
-  }
-  if (["PAUSED"].includes(text)) {
-    return `<span class="warn">${text}</span>`;
-  }
-  if (["STOPPED_BY_RISK", "SELL 0.62", "RISK_STOP"].includes(text) || text.startsWith("-")) {
-    return `<span class="danger-text">${text}</span>`;
-  }
-  return text;
+  return formatValueByRules(value, {
+    ok: {
+      exact: ["RUNNING", "APPROVED", "NORMAL", "BUY", "REBALANCE"],
+      startsWith: ["+"]
+    },
+    blue: {
+      exact: ["PAPER_RUNNING", "生成订单草图", "Live"]
+    },
+    warn: {
+      exact: ["PAUSED"]
+    },
+    danger: {
+      exact: ["STOPPED_BY_RISK", "SELL 0.62", "RISK_STOP"],
+      startsWith: ["-"]
+    }
+  });
 }
 
-renderNav();
-renderSummaries();
+renderNav("策略");
+renderSummaryCards(summaries);
 renderFilters();
 renderStrategies();
 renderTabs();
