@@ -1,4 +1,13 @@
-const navItems = ["首页 / 运行台", "策略", "订单", "账本", "风控", "事件日志", "设置"];
+const navItems = [
+  ["首页", "home.html"],
+  ["策略", "strategies.html"],
+  ["订单", "orders.html"],
+  ["账本", "ledger.html"],
+  ["风控", "risk.html"],
+  ["日志", "logs.html"],
+  ["设置", "settings.html"]
+];
+const currentNav = "首页";
 
 const statusCards = [
   ["系统状态", "RUNNING", "数据延迟：正常", "ok"],
@@ -52,14 +61,15 @@ const events = [
 
 function renderNav() {
   const nav = document.getElementById("nav");
-  nav.innerHTML = navItems.map((item, index) => (
-    `<button class="nav-item ${index === 0 ? "active" : ""}" type="button">${item}</button>`
+  nav.innerHTML = navItems.map(item => (
+    `<button class="nav-item ${item[0] === currentNav ? "active" : ""}" type="button" data-href="${item[1]}">${item[0]}</button>`
   )).join("");
 
   nav.querySelectorAll(".nav-item").forEach(button => {
     button.addEventListener("click", () => {
-      nav.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
-      button.classList.add("active");
+      if (!button.classList.contains("active")) {
+        window.location.href = button.dataset.href;
+      }
     });
   });
 }
@@ -75,9 +85,8 @@ function renderStatusCards() {
 }
 
 function renderPipeline() {
-  document.getElementById("pipeline").innerHTML = pipeline.map((step, index) => (
+  document.getElementById("pipeline").innerHTML = pipeline.map(step => (
     `<div class="step">
-      <div class="step-no">${index + 1}</div>
       <div class="step-name">${step[0]}</div>
       <div class="step-state ${step[2]}">${step[1]}</div>
     </div>`

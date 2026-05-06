@@ -67,7 +67,7 @@ select {
 }
 
 .nav-item.active {
-  background: #eaf2ff;
+  background: #d8e8ff;
   color: var(--blue);
   font-weight: 700;
 }
@@ -427,4 +427,104 @@ th {
   .kv-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.workspace {
+  padding-top: 11px;
+  padding-bottom: 20px;
+}
+
+.topbar,
+.selected-head {
+  gap: 12px;
+}
+
+h1 {
+  margin-bottom: 2px;
+  font-size: 18px;
+}
+
+h2,
+h3 {
+  margin-bottom: 8px;
+}
+
+.top-actions {
+  gap: 10px;
+}
+
+.btn {
+  min-height: 34px;
+}
+
+.summary-grid {
+  gap: 10px;
+  margin: 10px 0 8px;
+}
+
+.summary-card {
+  min-height: 88px;
+  padding: 12px 14px;
+}
+
+.summary-value {
+  margin-top: 4px;
+  font-size: 18px;
+}
+
+.summary-meta {
+  margin-top: 5px;
+}
+
+.panel,
+.detail-card {
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+
+.tabs {
+  margin-bottom: 8px;
+}
+
+.tab {
+  padding: 7px 0;
+}
+
+th,
+td {
+  padding: 7px 8px;
+}
+
+.detail-grid,
+.detail-stack {
+  gap: 10px;
+}
+
+body {
+  font-size: 11.2px;
+}
+
+.brand,
+h1 {
+  font-size: 18px;
+}
+
+h2 {
+  font-size: 14.4px;
+}
+
+h3 {
+  font-size: 12.8px;
+}
+
+th {
+  font-size: 10.4px;
+}
+
+.summary-value {
+  font-size: 14.4px;
+}
+
+.tag {
+  font-size: 9.6px;
 }

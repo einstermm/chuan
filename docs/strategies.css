@@ -67,7 +67,7 @@ select {
 }
 
 .nav-item.active {
-  background: #eaf2ff;
+  background: #d8e8ff;
   color: var(--blue);
   font-weight: 700;
 }
@@ -88,8 +88,7 @@ select {
 }
 
 .topbar,
-.selected-head,
-.panel-head {
+.section-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -119,11 +118,17 @@ h3 {
   font-size: 16px;
 }
 
+h4 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
 .subtitle {
   color: #344054;
 }
 
-.top-actions {
+.top-actions,
+.inline-actions {
   display: flex;
   gap: 12px;
 }
@@ -146,13 +151,12 @@ h3 {
 }
 
 .btn.small {
-  min-width: 86px;
-  min-height: 34px;
+  min-width: 88px;
 }
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
   margin: 16px 0 12px;
 }
@@ -200,8 +204,8 @@ h3 {
 
 .filters {
   display: grid;
-  grid-template-columns: repeat(6, minmax(120px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(5, minmax(130px, 1fr));
+  gap: 14px;
 }
 
 .filter {
@@ -259,7 +263,7 @@ th {
 .tag {
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
+  min-height: 26px;
   padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 7px;
@@ -275,15 +279,27 @@ th {
   color: var(--green);
 }
 
+.tag.blue {
+  border-color: #b9cffb;
+  background: #eef5ff;
+  color: var(--blue);
+}
+
 .tag.warn {
   border-color: #f3c16b;
   background: #fff5dc;
   color: var(--orange);
 }
 
+.tag.danger {
+  border-color: #f2a3a3;
+  background: #fff1f1;
+  color: var(--red);
+}
+
 .tabs {
   display: flex;
-  gap: 28px;
+  gap: 24px;
   margin: 12px 0 10px;
   border-bottom: 1px solid var(--line);
 }
@@ -305,40 +321,31 @@ th {
 
 .detail-grid {
   display: grid;
-  grid-template-columns: minmax(500px, 1fr) minmax(520px, 0.95fr);
+  grid-template-columns: minmax(430px, 0.9fr) minmax(540px, 1.1fr);
   gap: 14px;
 }
 
-.right-stack {
-  display: grid;
-  gap: 12px;
+.detail-grid.lower {
+  margin-top: 12px;
 }
 
 .detail-card {
-  padding: 14px 16px;
+  padding: 16px;
 }
 
-.timeline {
-  display: grid;
-  gap: 0;
-}
-
-.timeline-row {
-  display: grid;
-  grid-template-columns: 86px 150px 1fr;
-  gap: 16px;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--line);
+.compact {
+  align-items: center;
 }
 
 .kv-grid {
   display: grid;
-  grid-template-columns: 130px 1fr 150px 1fr;
-  gap: 8px 18px;
+  grid-template-columns: 120px 1fr 120px 1fr;
+  gap: 8px 14px;
 }
 
-.kv-grid.two-col {
+.compact-kv {
   grid-template-columns: 130px 1fr;
+  align-content: start;
 }
 
 .kv-label {
@@ -349,24 +356,91 @@ th {
   min-width: 0;
 }
 
-.fill-summary {
+.mini-metrics {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 24px;
-  margin-bottom: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 14px 0;
 }
 
-.raw-box {
-  min-height: 360px;
-  margin: 0;
-  padding: 14px;
+.mini-card {
+  min-height: 54px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  text-align: center;
+}
+
+.mini-label {
+  color: #344054;
+  font-size: 12px;
+}
+
+.mini-value {
+  margin-top: 4px;
+  font-weight: 800;
+}
+
+.param-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.param-card {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #f8fafc;
+  padding: 12px;
+}
+
+.param-title {
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.param-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 5px 0;
+}
+
+.governance-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 2fr) minmax(360px, 3fr);
+  gap: 14px;
+}
+
+.sub-panel {
+  min-height: 142px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.approval-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 210px;
+  gap: 18px;
+}
+
+.check-list {
+  margin: 0;
+  padding: 4px 0 0 18px;
+  border-left: 1px solid var(--line);
   color: #344054;
-  overflow: auto;
-  font-family: Menlo, Consolas, monospace;
-  font-size: 13px;
+}
+
+.check-list li {
+  margin-bottom: 9px;
+  color: var(--green);
+  font-weight: 700;
+}
+
+.note {
+  margin-top: 10px;
+  color: #344054;
 }
 
 .ok {
@@ -389,17 +463,25 @@ th {
   font-weight: 800;
 }
 
-@media (max-width: 1380px) {
+@media (max-width: 1320px) {
   .summary-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .detail-grid {
+  .detail-grid,
+  .governance-layout,
+  .approval-layout {
     grid-template-columns: 1fr;
+  }
+
+  .check-list {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
   }
 }
 
-@media (max-width: 980px) {
+@media (max-width: 940px) {
   .sidebar {
     position: static;
     width: 100%;
@@ -411,7 +493,7 @@ th {
   }
 
   .topbar,
-  .selected-head,
+  .section-head,
   .filter-panel {
     display: block;
   }
@@ -422,8 +504,122 @@ th {
 
   .summary-grid,
   .filters,
-  .kv-grid,
-  .fill-summary {
+  .param-grid,
+  .mini-metrics {
     grid-template-columns: 1fr;
   }
+
+  .kv-grid {
+    grid-template-columns: 110px 1fr;
+  }
+}
+
+.workspace {
+  padding-top: 11px;
+  padding-bottom: 20px;
+}
+
+.topbar,
+.section-head {
+  gap: 12px;
+}
+
+h1 {
+  margin-bottom: 2px;
+  font-size: 18px;
+}
+
+h2,
+h3,
+h4 {
+  margin-bottom: 8px;
+}
+
+.top-actions,
+.inline-actions {
+  gap: 10px;
+}
+
+.btn {
+  min-height: 34px;
+}
+
+.summary-grid {
+  gap: 10px;
+  margin: 10px 0 8px;
+}
+
+.summary-card {
+  min-height: 88px;
+  padding: 12px 14px;
+}
+
+.summary-value {
+  margin-top: 4px;
+  font-size: 18px;
+}
+
+.summary-meta {
+  margin-top: 5px;
+}
+
+.panel,
+.detail-card,
+.sub-panel {
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+
+.tabs {
+  margin: 8px 0 8px;
+}
+
+.tab {
+  padding: 7px 0;
+}
+
+th,
+td {
+  padding: 7px 8px;
+}
+
+.detail-grid,
+.param-grid,
+.mini-metrics,
+.governance-layout {
+  gap: 10px;
+}
+
+body {
+  font-size: 11.2px;
+}
+
+.brand,
+h1 {
+  font-size: 18px;
+}
+
+h2 {
+  font-size: 14.4px;
+}
+
+h3 {
+  font-size: 12.8px;
+}
+
+h4 {
+  font-size: 12px;
+}
+
+th {
+  font-size: 10.4px;
+}
+
+.summary-value {
+  font-size: 14.4px;
+}
+
+.tag,
+.mini-label {
+  font-size: 9.6px;
 }

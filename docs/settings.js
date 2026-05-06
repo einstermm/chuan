@@ -1,4 +1,13 @@
-const navItems = ["首页 / 运行台", "策略", "订单", "账本", "风控", "事件日志", "设置"];
+const navItems = [
+  ["首页", "home.html"],
+  ["策略", "strategies.html"],
+  ["订单", "orders.html"],
+  ["账本", "ledger.html"],
+  ["风控", "risk.html"],
+  ["日志", "logs.html"],
+  ["设置", "settings.html"]
+];
+const currentNav = "设置";
 
 const summaries = [
   ["当前环境", "Live", "账户：acct_spot_001", "blue"],
@@ -66,7 +75,7 @@ const notifications = [
 ];
 
 const storageSettings = [
-  ["事件日志保留", "30 天"],
+  ["日志保留", "30 天"],
   ["Bucket", "quant-prod-logs"],
   ["原始载荷保留", "7 天"],
   ["冷存归档", "开启"],
@@ -96,8 +105,15 @@ const changes = [
 function renderNav() {
   const nav = document.getElementById("nav");
   nav.innerHTML = navItems.map(item => (
-    `<button class="nav-item ${item === "设置" ? "active" : ""}" type="button">${item}</button>`
+    `<button class="nav-item ${item[0] === currentNav ? "active" : ""}" type="button" data-href="${item[1]}">${item[0]}</button>`
   )).join("");
+  nav.querySelectorAll(".nav-item").forEach(button => {
+    button.addEventListener("click", () => {
+      if (!button.classList.contains("active")) {
+        window.location.href = button.dataset.href;
+      }
+    });
+  });
 }
 
 function renderSummaries() {

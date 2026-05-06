@@ -65,7 +65,7 @@ button {
 }
 
 .nav-item.active {
-  background: #eaf2ff;
+  background: #d8e8ff;
   color: var(--blue);
   font-weight: 700;
 }
@@ -188,46 +188,15 @@ h2 {
 }
 
 .step {
-  position: relative;
-  min-height: 78px;
-  padding: 14px;
+  min-height: 55px;
+  padding: 9px 12px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: #fff;
   text-align: center;
 }
 
-.step::after {
-  content: "";
-  position: absolute;
-  top: 39px;
-  right: -14px;
-  width: 14px;
-  height: 1px;
-  background: #aab4c3;
-}
-
-.step:last-child::after {
-  display: none;
-}
-
-.step-no {
-  position: absolute;
-  top: -16px;
-  left: 50%;
-  width: 24px;
-  height: 24px;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: var(--blue);
-  color: #fff;
-  font-size: 12px;
-  line-height: 24px;
-  font-weight: 700;
-}
-
 .step-name {
-  margin-top: 10px;
   font-weight: 700;
 }
 
@@ -399,4 +368,92 @@ th {
   .decision-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.workspace {
+  padding-top: 11px;
+  padding-bottom: 20px;
+}
+
+.topbar {
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+h1 {
+  margin-bottom: 2px;
+  font-size: 18px;
+}
+
+h2 {
+  margin-bottom: 8px;
+}
+
+.meta-line {
+  margin-top: 2px;
+}
+
+.top-actions {
+  gap: 10px;
+  padding-top: 0;
+}
+
+.btn {
+  min-height: 34px;
+}
+
+.status-grid,
+.content-grid,
+.event-grid {
+  gap: 10px;
+}
+
+.status-grid {
+  margin-bottom: 8px;
+}
+
+.status-card {
+  min-height: 88px;
+  padding: 12px 14px;
+}
+
+.status-value {
+  margin-top: 4px;
+  font-size: 18px;
+}
+
+.status-meta {
+  margin-top: 6px;
+}
+
+.panel {
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+
+th,
+td {
+  padding: 7px 8px;
+}
+
+body {
+  font-size: 11.2px;
+}
+
+.brand,
+h1 {
+  font-size: 18px;
+}
+
+h2 {
+  font-size: 14.4px;
+}
+
+th {
+  font-size: 10.4px;
+}
+
+.status-value,
+.metric-value {
+  font-size: 14.4px;
 }
