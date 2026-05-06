@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>量化交易运行台</title>
+  <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">量化交易系统</div>
+    <nav class="nav" id="nav"></nav>
+    <button class="collapse-btn" type="button">收起</button>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <div>
+        <h1>量化交易运行台</h1>
+        <div class="meta-line">环境：Sandbox　|　交易所：OKX　|　账户：acct_spot_001　|　策略：S_MOM_VOL_BTC　|　版本：v1.2.0</div>
+        <div class="meta-line">系统状态：<span class="text-ok">RUNNING</span>　|　最近心跳：10 秒前</div>
+      </div>
+      <div class="top-actions">
+        <button class="btn" type="button">暂停策略</button>
+        <button class="btn danger" type="button">Kill Switch</button>
+      </div>
+    </header>
+
+    <section class="status-grid" id="statusCards"></section>
+
+    <section class="panel">
+      <h2>核心交易链路</h2>
+      <div class="pipeline" id="pipeline"></div>
+    </section>
+
+    <section class="content-grid">
+      <section class="panel">
+        <h2>当前策略决策</h2>
+        <div class="decision-grid" id="decisionGrid"></div>
+      </section>
+
+      <section class="panel">
+        <h2>当前订单 / 执行任务</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>交易对</th>
+              <th>方向</th>
+              <th>风控</th>
+              <th>执行方式</th>
+              <th>订单状态</th>
+              <th>成交数量</th>
+              <th>入账状态</th>
+            </tr>
+          </thead>
+          <tbody id="orderRows"></tbody>
+        </table>
+        <div class="table-actions">
+          <button class="link-btn" type="button">查看链路</button>
+          <button class="link-btn" type="button">查看事件</button>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>最近事件 / 告警</h2>
+        <div class="badges">
+          <span class="badge warn">部分成交</span>
+          <span class="badge ok">对账正常</span>
+        </div>
+      </div>
+      <div class="event-grid" id="eventGrid"></div>
+    </section>
+  </main>
+
+  <script src="./index.js"></script>
+</body>
+</html>

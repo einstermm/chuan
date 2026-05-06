@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>事件日志</title>
+  <link rel="stylesheet" href="./event_logs.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">量化交易系统</div>
+    <nav class="nav" id="nav"></nav>
+    <button class="collapse-btn" type="button">收起</button>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <div>
+        <h1>事件日志</h1>
+        <p class="subtitle">跟踪系统运行事件、策略信号、订单生命周期、风控动作、账本入账和对账异常</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn" type="button">刷新日志</button>
+        <button class="btn" type="button">导出日志</button>
+        <button class="btn primary" type="button">订阅告警</button>
+      </div>
+    </header>
+
+    <section class="summary-grid" id="summaryGrid"></section>
+
+    <section class="panel filter-panel">
+      <div class="filters" id="filters"></div>
+      <button class="btn small" type="button">筛选</button>
+    </section>
+
+    <section class="panel">
+      <h2>事件列表</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>事件 ID</th>
+            <th>级别</th>
+            <th>事件类型</th>
+            <th>模块</th>
+            <th>对象</th>
+            <th>摘要</th>
+            <th>Trace ID</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="eventRows"></tbody>
+      </table>
+    </section>
+
+    <section class="panel selected-panel">
+      <div class="selected-head">
+        <h2>选中事件：EVT-1007 / ReconciliationFailed / acct_spot_001</h2>
+        <div class="status-tags">
+          <span class="tag danger-tag">级别 ERROR</span>
+          <span class="tag warn">状态 MANUAL_REVIEW</span>
+          <span class="tag blue-tag">模块 Reconciliation</span>
+        </div>
+      </div>
+      <div class="tabs" id="detailTabs"></div>
+      <div id="detailContent"></div>
+    </section>
+  </main>
+
+  <script src="./event_logs.js"></script>
+</body>
+</html>

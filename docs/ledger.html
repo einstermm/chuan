@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>账本管理</title>
+  <link rel="stylesheet" href="./ledger.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">量化交易系统</div>
+    <nav class="nav" id="nav"></nav>
+    <button class="collapse-btn" type="button">收起</button>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <div>
+        <h1>账本管理</h1>
+        <p class="subtitle">维护持仓、现金、费用、盈亏和交易所对账</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn" type="button">刷新账本</button>
+        <button class="btn" type="button">执行对账</button>
+        <button class="btn primary" type="button">导出账本</button>
+      </div>
+    </header>
+
+    <section class="summary-grid" id="summaryGrid"></section>
+
+    <section class="panel filter-panel">
+      <div class="filters" id="filters"></div>
+      <button class="btn small" type="button">筛选</button>
+    </section>
+
+    <section class="panel">
+      <h2>资产快照 / 对账摘要</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>资产</th>
+            <th>内部总余额</th>
+            <th>可用余额</th>
+            <th>冻结余额</th>
+            <th>交易所余额</th>
+            <th>差异</th>
+            <th>阈值</th>
+            <th>对账状态</th>
+          </tr>
+        </thead>
+        <tbody id="assetRows"></tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <div class="tabs" id="ledgerTabs"></div>
+      <div class="table-title" id="ledgerTableTitle">账本流水</div>
+      <table>
+        <thead id="ledgerHead"></thead>
+        <tbody id="ledgerRows"></tbody>
+      </table>
+    </section>
+
+    <section class="panel selected-panel">
+      <div class="selected-head">
+        <h2>选中流水：LE-BTC-002 / POSITION / BTC</h2>
+        <div class="status-tags">
+          <span class="tag warn">BOOKED_PARTIAL</span>
+          <span class="tag ok">幂等 ACCEPTED_AND_BOOKED</span>
+          <span class="tag ok">对账 PASS</span>
+        </div>
+      </div>
+      <div class="tabs" id="detailTabs"></div>
+      <div id="detailContent"></div>
+    </section>
+  </main>
+
+  <script src="./ledger.js"></script>
+</body>
+</html>

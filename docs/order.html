@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>订单管理</title>
+  <link rel="stylesheet" href="./order.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">量化交易系统</div>
+    <nav class="nav" id="nav"></nav>
+    <button class="collapse-btn" type="button">收起</button>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <div>
+        <h1>订单管理</h1>
+        <p class="subtitle">跟踪订单意图、风控、执行计划、Hummingbot、成交和入账状态</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn" type="button">刷新</button>
+        <button class="btn primary" type="button">导出订单记录</button>
+      </div>
+    </header>
+
+    <section class="summary-grid" id="summaryGrid"></section>
+
+    <section class="panel filter-panel">
+      <div class="filters" id="filters"></div>
+      <button class="btn small" type="button">筛选</button>
+    </section>
+
+    <section class="panel">
+      <h2>订单列表</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>订单意图 ID</th>
+            <th>策略</th>
+            <th>交易对</th>
+            <th>方向</th>
+            <th>数量</th>
+            <th>执行方式</th>
+            <th>风控</th>
+            <th>订单状态</th>
+            <th>成交数量</th>
+            <th>入账状态</th>
+            <th>对账</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="orderRows"></tbody>
+      </table>
+    </section>
+
+    <section class="panel selected-panel">
+      <div class="selected-head">
+        <h2>选中订单：BTC-USDT <span class="ok">BUY</span> 0.0500 / OI-BTC-002</h2>
+        <div class="status-tags">
+          <span class="tag warn">PARTIALLY_FILLED</span>
+          <span class="tag ok">风控 PASS</span>
+          <span class="tag warn">入账 BOOKED_PARTIAL</span>
+          <span class="tag ok">对账 PASS</span>
+        </div>
+      </div>
+      <div class="tabs" id="tabs"></div>
+      <div id="tabContent"></div>
+    </section>
+  </main>
+
+  <script src="./order.js"></script>
+</body>
+</html>

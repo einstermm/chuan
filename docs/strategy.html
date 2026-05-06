@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>策略管理</title>
+  <link rel="stylesheet" href="./strategy.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">量化交易系统</div>
+    <nav class="nav" id="nav"></nav>
+    <button class="collapse-btn" type="button">收起</button>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <div>
+        <h1>策略管理</h1>
+        <p class="subtitle">管理策略定义、参数版本、上线状态和最近信号表现</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn" type="button">导入策略</button>
+        <button class="btn primary" type="button">新建策略</button>
+      </div>
+    </header>
+
+    <section class="summary-grid" id="summaryGrid"></section>
+
+    <section class="panel filter-panel">
+      <div class="filters" id="filters"></div>
+      <button class="btn small" type="button">筛选</button>
+    </section>
+
+    <section class="panel">
+      <h2>策略列表</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>策略名称</th>
+            <th>策略 ID</th>
+            <th>类型</th>
+            <th>交易对</th>
+            <th>版本</th>
+            <th>环境</th>
+            <th>运行状态</th>
+            <th>最近信号</th>
+            <th>当前决策</th>
+            <th>今日盈亏</th>
+            <th>风控</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="strategyRows"></tbody>
+      </table>
+    </section>
+
+    <section class="panel selected-panel">
+      <div class="section-head">
+        <h2>选中策略：BTC 动量波动策略 / S_MOM_VOL_BTC</h2>
+        <div class="status-tags">
+          <span class="tag ok">RUNNING</span>
+          <span class="tag">版本 v1.2.0</span>
+          <span class="tag blue">环境 Live</span>
+          <span class="tag ok">风控 NORMAL</span>
+        </div>
+      </div>
+      <div class="tabs" id="tabs"></div>
+
+      <div class="detail-grid">
+        <section class="detail-card">
+          <h3>策略概览</h3>
+          <div class="kv-grid" id="overview"></div>
+          <div class="mini-metrics" id="miniMetrics"></div>
+          <div class="inline-actions">
+            <button class="btn" type="button">暂停策略</button>
+            <button class="btn" type="button">克隆新版本</button>
+            <button class="btn" type="button">查看运行台</button>
+          </div>
+        </section>
+
+        <section class="detail-card">
+          <div class="section-head compact">
+            <h3>当前生产参数</h3>
+            <span class="tag blue">当前生产参数 / 只读</span>
+          </div>
+          <div class="param-grid" id="params"></div>
+        </section>
+      </div>
+
+      <div class="detail-grid lower">
+        <section class="detail-card">
+          <h3>最近信号</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>交易对</th>
+                <th>信号</th>
+                <th>方向</th>
+                <th>置信度</th>
+                <th>价格</th>
+                <th>备注</th>
+              </tr>
+            </thead>
+            <tbody id="signalRows"></tbody>
+          </table>
+          <p class="note">原因：调仓差额 32 USDT，小于阈值 500 USDT</p>
+        </section>
+
+        <section class="detail-card">
+          <h3>组合目标 / 上线治理</h3>
+          <div class="governance-layout">
+            <div class="sub-panel">
+              <h4>组合目标</h4>
+              <div class="kv-grid compact-kv" id="target"></div>
+            </div>
+            <div class="sub-panel">
+              <h4>上线治理</h4>
+              <div class="approval-layout">
+                <div class="kv-grid compact-kv" id="governance"></div>
+                <ul class="check-list" id="checks"></ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="./strategy.js"></script>
+</body>
+</html>

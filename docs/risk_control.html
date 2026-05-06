@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>风控中心</title>
+  <link rel="stylesheet" href="./risk_control.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">量化交易系统</div>
+    <nav class="nav" id="nav"></nav>
+    <button class="collapse-btn" type="button">收起</button>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <div>
+        <h1>风控中心</h1>
+        <p class="subtitle">监控交易前风控、执行中风控、风险暴露、亏损限制和 Kill Switch</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn" type="button">刷新状态</button>
+        <button class="btn" type="button">新增规则</button>
+        <button class="btn danger" type="button">Kill Switch</button>
+      </div>
+    </header>
+
+    <section class="summary-grid" id="summaryGrid"></section>
+
+    <section class="panel risk-summary">
+      <div class="summary-head">当前风险摘要</div>
+      <div class="meta-line">账户：acct_spot_001　|　交易所：OKX　|　环境：Live　|　最近风险计算：10 秒前</div>
+      <div class="meter-grid" id="meterGrid"></div>
+    </section>
+
+    <section class="panel">
+      <div class="tabs" id="riskTabs"></div>
+      <div class="table-title" id="riskTableTitle">风控事件</div>
+      <table>
+        <thead id="riskHead"></thead>
+        <tbody id="riskRows"></tbody>
+      </table>
+    </section>
+
+    <section class="panel selected-panel">
+      <div class="selected-head">
+        <h2>选中事件：RE-001 / PRE_TRADE_REJECT / OI-BTC-003</h2>
+        <div class="status-tags">
+          <span class="tag danger-tag">级别 HIGH</span>
+          <span class="tag ok">状态 CLOSED</span>
+          <span class="tag danger-tag">动作 REJECT_ORDER</span>
+        </div>
+      </div>
+      <div class="tabs" id="detailTabs"></div>
+      <div id="detailContent"></div>
+    </section>
+  </main>
+
+  <script src="./risk_control.js"></script>
+</body>
+</html>
