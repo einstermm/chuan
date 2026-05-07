@@ -19,11 +19,11 @@
       <div>
         <h1>量化交易运行台</h1>
         <div class="meta-line">环境：Sandbox　|　交易所：OKX　|　账户：acct_spot_001　|　策略：S_MOM_VOL_BTC　|　版本：v1.2.0</div>
-        <div class="meta-line">系统状态：<span class="text-ok">RUNNING</span>　|　最近心跳：10 秒前</div>
+        <div class="meta-line">系统状态：<span class="text-ok" id="systemStatusText">RUNNING</span>　|　最近心跳：10 秒前</div>
       </div>
       <div class="top-actions">
-        <button class="btn" type="button">暂停策略</button>
-        <button class="btn danger" type="button">Kill Switch</button>
+        <button class="btn" type="button" id="pauseStrategyBtn">暂停策略</button>
+        <button class="btn danger" type="button" id="killSwitchBtn">Kill Switch</button>
       </div>
     </header>
 
@@ -58,8 +58,8 @@
           <tbody id="orderRows"></tbody>
         </table>
         <div class="table-actions">
-          <button class="link-btn" type="button">查看链路</button>
-          <button class="link-btn" type="button">查看事件</button>
+          <button class="link-btn" type="button" data-order-modal="chain">查看链路</button>
+          <button class="link-btn" type="button" data-order-modal="events">查看事件</button>
         </div>
       </section>
     </section>
@@ -75,6 +75,91 @@
       <div class="event-grid" id="eventGrid"></div>
     </section>
   </main>
+
+  <div class="modal-mask" id="orderModal" aria-hidden="true">
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="orderModalTitle">订单详情</h2>
+          <div class="detail-meta" id="orderModalMeta"></div>
+        </div>
+        <button class="modal-close" type="button" id="orderModalClose">关闭</button>
+      </div>
+      <div class="modal-body" id="orderModalBody"></div>
+    </section>
+  </div>
+
+  <div class="modal-mask" id="pauseModal" aria-hidden="true">
+    <section class="modal-panel pause-panel" role="dialog" aria-modal="true" aria-labelledby="pauseModalTitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="pauseModalTitle">暂停策略</h2>
+          <div class="detail-meta" id="pauseModalMeta">S_MOM_VOL_BTC　|　Sandbox　|　acct_spot_001</div>
+        </div>
+        <button class="modal-close" type="button" id="pauseModalClose">关闭</button>
+      </div>
+      <div class="pause-grid">
+        <div class="pause-item">
+          <div class="summary-label">当前状态</div>
+          <div class="summary-value" id="pauseCurrentState">RUNNING</div>
+        </div>
+        <div class="pause-item">
+          <div class="summary-label">新信号</div>
+          <div class="summary-value warn" id="pauseSignalEffect">暂停生成</div>
+        </div>
+        <div class="pause-item">
+          <div class="summary-label">已发订单</div>
+          <div class="summary-value blue" id="pauseOrderEffect">继续跟踪</div>
+        </div>
+        <div class="pause-item">
+          <div class="summary-label">账本对账</div>
+          <div class="summary-value ok" id="pauseLedgerEffect">继续运行</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" type="button" id="pauseCancelBtn">取消</button>
+        <button class="btn primary" type="button" id="pauseConfirmBtn">确认暂停</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-mask" id="killModal" aria-hidden="true">
+    <section class="modal-panel kill-panel" role="dialog" aria-modal="true" aria-labelledby="killModalTitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="killModalTitle">Kill Switch</h2>
+          <div class="detail-meta">S_MOM_VOL_BTC　|　紧急停止</div>
+        </div>
+        <button class="modal-close" type="button" id="killModalClose">关闭</button>
+      </div>
+      <div class="kill-grid">
+        <div class="kill-item">
+          <div class="summary-label">系统状态</div>
+          <div class="summary-value danger">KILL_SWITCH</div>
+        </div>
+        <div class="kill-item">
+          <div class="summary-label">新信号</div>
+          <div class="summary-value danger">BLOCKED</div>
+        </div>
+        <div class="kill-item">
+          <div class="summary-label">执行计划</div>
+          <div class="summary-value danger">STOPPED</div>
+        </div>
+        <div class="kill-item">
+          <div class="summary-label">未完成订单</div>
+          <div class="summary-value warn">撤单</div>
+        </div>
+        <div class="kill-item">
+          <div class="summary-label">账本对账</div>
+          <div class="summary-value ok">保留</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" type="button" id="killCancelBtn">取消</button>
+        <button class="btn danger" type="button" id="killConfirmBtn">确认触发</button>
+      </div>
+    </section>
+  </div>
 
   <script src="./js/common.js"></script>
   <script src="./js/home.js"></script>
